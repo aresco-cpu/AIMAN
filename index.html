@@ -105,6 +105,13 @@
   </div>
 
   <script>
+    // --- 環境變數配置 (從 GitHub 執行時必填) ---
+    const CONFIG = {
+      WORKER_URL: "在此填入您的_CLOUDFLARE_WORKER_URL", 
+      GAS_URL: "在此填入您的_GAS_WEB_APP_URL",
+      LICENSE_KEY: "ARES-PRO-2024-KEY"
+    };
+
     let cropper = null;
     let croppedBase64 = null;
 
@@ -142,25 +149,59 @@
       processWithAI();
     }
 
-    function processWithAI() {
+    /**
+     * AI 辨識邏輯：相容 GAS 環境與 GitHub 環境
+     */
+    async function processWithAI() {
       showLoading("AI 正在深度掃描名片內容...");
       
-      google.script.run
-        .withSuccessHandler(function(result) {
+      const isGasEnv = typeof google !== 'undefined' && google.script && google.script.run;
+      const base64Clean = croppedBase64.split(',')[1];
+
+      if (isGasEnv) {
+        // GAS 環境：直接調用 gs 函式
+        google.script.run
+          .withSuccessHandler(function(result) {
+            hideLoading();
+            if (result.success) {
+              fillData(result.data);
+              document.getElementById('step-capture').classList.add('hidden');
+              document.getElementById('step-review').classList.remove('hidden');
+            } else {
+              alert("辨識失敗：" + result.error);
+            }
+          })
+          .withFailureHandler(function(err) {
+            hideLoading();
+            alert("網路或伺服器錯誤");
+          })
+          .analyzeCardImage(croppedBase64);
+      } else {
+        // GitHub 環境：透過 Fetch 調用 Cloudflare Worker
+        try {
+          const response = await fetch(CONFIG.WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              licenseKey: CONFIG.LICENSE_KEY,
+              action: "analyze",
+              image: base64Clean
+            })
+          });
+          const result = await response.json();
           hideLoading();
           if (result.success) {
             fillData(result.data);
             document.getElementById('step-capture').classList.add('hidden');
             document.getElementById('step-review').classList.remove('hidden');
           } else {
-            alert("辨識失敗：" + result.error);
+            alert("辨識失敗：" + (result.error || "未知錯誤"));
           }
-        })
-        .withFailureHandler(function(err) {
+        } catch (err) {
           hideLoading();
-          alert("網路或伺服器錯誤");
-        })
-        .analyzeCardImage(croppedBase64);
+          alert("無法連線至辨識伺服器 (Worker)，請檢查 CONFIG.WORKER_URL");
+        }
+      }
     }
 
     function fillData(data) {
@@ -172,7 +213,10 @@
       document.getElementById('res-address').value = data.address || '';
     }
 
-    function saveCard() {
+    /**
+     * 存檔邏輯：相容 GAS 環境與 GitHub 環境
+     */
+    async function saveCard() {
       const cardData = {
         name: document.getElementById('res-name').value,
         company: document.getElementById('res-company').value,
@@ -185,17 +229,40 @@
 
       showLoading("正在儲存名片並通知管理員...");
       
-      google.script.run
-        .withSuccessHandler(function(res) {
+      const isGasEnv = typeof google !== 'undefined' && google.script && google.script.run;
+
+      if (isGasEnv) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            hideLoading();
+            if (res.success) {
+              alert("名片已成功建檔！");
+              location.reload();
+            } else {
+              alert("儲存失敗：" + res.error);
+            }
+          })
+          .saveCardToSheet(cardData);
+      } else {
+        // GitHub 環境：透過 Fetch 調用 GAS Web App (需實作 doPost)
+        try {
+          const response = await fetch(CONFIG.GAS_URL, {
+            method: "POST",
+            mode: "no-cors", // 注意：GAS 跨域 POST 限制，此處僅能發送但無法讀取回傳結果
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "saveCard",
+              data: cardData
+            })
+          });
           hideLoading();
-          if (res.success) {
-            alert("名片已成功建檔！");
-            location.reload();
-          } else {
-            alert("儲存失敗：" + res.error);
-          }
-        })
-        .saveCardToSheet(cardData);
+          alert("資料已嘗試送出。請檢查 Google Sheet 確認。");
+          location.reload();
+        } catch (err) {
+          hideLoading();
+          alert("儲存失敗，請檢查 CONFIG.GAS_URL");
+        }
+      }
     }
 
     function showLoading(text) {
