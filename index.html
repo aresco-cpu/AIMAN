@@ -44,7 +44,6 @@
     input:focus { border-color: var(--line-green); outline: none; box-shadow: 0 0 0 2px rgba(6, 199, 85, 0.1); }
     label { font-size: 13px; font-weight: 800; color: #64748B; margin-bottom: 6px; display: block; text-transform: uppercase; }
 
-    /* 管理員切換鈕樣式 */
     .view-toggle { padding: 4px 12px; border-radius: 50px; font-size: 11px; font-weight: 900; cursor: pointer; transition: 0.3s; }
     .view-toggle.admin { background: #FDE68A; color: #92400E; }
     .view-toggle.user { background: #E2E8F0; color: #475569; }
@@ -62,7 +61,7 @@
 </head>
 <body class="overflow-x-hidden">
 
-  <!-- 1. PC Sidebar (僅 Admin) -->
+  <!-- 1. PC Sidebar -->
   <aside id="pc-sidebar" class="sidebar hidden md:flex flex-col">
     <div class="p-8">
       <div class="flex items-center gap-3">
@@ -74,7 +73,7 @@
          <button id="pc-view-toggle" onclick="toggleViewMode()" class="view-toggle admin">後台</button>
       </div>
     </div>
-    <nav id="pc-nav" class="flex-1 space-y-1">
+    <nav class="flex-1 space-y-1">
       <div onclick="showPage('home')" class="sidebar-item active" data-page="home">數據概覽</div>
       <div onclick="showPage('scanner')" class="sidebar-item" data-page="scanner">名片採集</div>
       <div onclick="showPage('editor')" class="sidebar-item" data-page="editor">V3 內容發布</div>
@@ -101,34 +100,33 @@
   <!-- 3. Main Workspace -->
   <main class="main-view md:ml-[240px] p-4 md:p-10 transition-all duration-300">
     
-    <!-- 首頁儀表板 -->
+    <!-- 頁面：首頁儀表板 -->
     <div id="page-home" class="page-node active space-y-6">
       <div class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm">
         <h3 class="text-2xl font-bold text-gray-800">您好，<span id="welcome-name">Tonyfang</span></h3>
-        <p class="text-gray-400 text-[14px] mt-1">目前管理範圍：30 位業務人員 | 當前狀態：連線中</p>
+        <p class="text-gray-400 text-[14px] mt-1">目前管理範圍：30 位業務人員 | 相片庫已連線</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- 僅 Admin 可見的數據卡片 -->
         <div id="admin-card" class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm">
-          <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">當月採集總量 (Admin)</p>
+          <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">當月採集總量</p>
           <h4 class="text-5xl font-black text-gray-800 mt-2 tracking-tighter">382</h4>
           <p class="text-[12px] text-green-500 font-bold mt-4">↑ 12% 較上月增長</p>
         </div>
         <div onclick="showPage('scanner')" class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
           <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">📸</div>
           <h5 class="font-bold text-gray-800 text-[16px]">名片掃描入庫</h5>
-          <p class="text-sm text-gray-400 mt-1">GPT-4o AI 自動解析</p>
+          <p class="text-sm text-gray-400 mt-1">AI 自動辨識並存至雲端</p>
         </div>
         <div id="admin-editor-btn" onclick="showPage('editor')" class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
           <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎨</div>
-          <h5 class="font-bold text-gray-800 text-[16px]">V3 戰報編輯 (Admin)</h5>
-          <p class="text-sm text-gray-400 mt-1">上架 Flex Message 內容</p>
+          <h5 class="font-bold text-gray-800 text-[16px]">V3 戰報編輯</h5>
+          <p class="text-sm text-gray-400 mt-1">上傳圖片並發布 Flex</p>
         </div>
       </div>
     </div>
 
-    <!-- AI 掃描器 -->
+    <!-- 頁面：AI 掃描器 -->
     <div id="page-scanner" class="page-node max-w-2xl mx-auto">
       <div id="step-capture" class="bg-white p-12 border border-gray-200 rounded-2xl text-center space-y-6">
         <div class="aspect-[1.58/1] w-full border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center bg-gray-50 relative group cursor-pointer overflow-hidden">
@@ -138,10 +136,9 @@
             <p class="text-[16px] font-black text-gray-500 mt-4 tracking-tight uppercase">拍攝或上傳名片</p>
           </div>
         </div>
-        <p class="text-[13px] text-gray-400 font-medium leading-relaxed">提示：請確保文字清晰無反光，系統會自動優化解析度。</p>
       </div>
 
-      <div id="step-review" class="hidden bg-white p-8 border border-gray-200 rounded-2xl shadow-sm space-y-5 animate-in slide-in-from-bottom duration-500">
+      <div id="step-review" class="hidden bg-white p-8 border border-gray-200 rounded-2xl shadow-sm space-y-5">
         <div class="grid grid-cols-2 gap-4">
           <div><label>姓名</label><input type="text" id="res-name"></div>
           <div><label>電話</label><input type="text" id="res-phone"></div>
@@ -154,14 +151,14 @@
       </div>
     </div>
 
-    <!-- V3 編輯器 -->
+    <!-- 頁面：V3 編輯器 -->
     <div id="page-editor" class="page-node">
       <div class="flex items-center justify-between mb-8 border-b pb-4">
         <div>
           <h2 class="text-2xl font-black text-gray-800">V3 戰報模板編輯中心</h2>
-          <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Flex Message Publisher v3.5</p>
+          <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">相片庫：1ZXxjxglQqPpaLGV5tq4iIjqLqrfD7Zw1</p>
         </div>
-        <button onclick="saveV3Content()" class="bg-[#06C755] text-white px-10 py-3 rounded-lg font-black shadow-lg shadow-green-100 hover:scale-105 transition-all">發布並更新</button>
+        <button onclick="saveV3Content()" class="bg-[#06C755] text-white px-10 py-3 rounded-lg font-black shadow-lg shadow-green-100 hover:scale-105 transition-all">發布變更</button>
       </div>
 
       <div class="editor-grid">
@@ -178,23 +175,23 @@
             </div>
           </div>
           <div class="mt-6 p-4 bg-blue-50 rounded-lg text-[13px] text-blue-600 font-medium leading-relaxed">
-            ※ 上傳項目圖片後會自動壓縮至 800px 寬度，確保載入速度。
+            ※ 上傳圖片會自動壓縮至 800px / 品質 0.7，並存入雲端相片庫。
           </div>
         </div>
 
-        <!-- 編輯區 -->
+        <!-- 編輯 -->
         <div class="space-y-8 pb-20">
           <div class="bg-white p-8 border rounded-xl space-y-6">
-            <div class="flex items-center gap-3 mb-2">
+            <div class="flex items-center gap-3">
               <div class="w-1 h-5 bg-green-500 rounded"></div>
               <h4 class="font-black text-gray-700 text-[15px]">1. 品牌主視覺</h4>
             </div>
             <div>
-              <label>頂部主圖片 (Hero Image)</label>
+              <label>頂部主圖片 URL</label>
               <div class="flex gap-3">
                 <input type="text" id="v3-hero-url" value="https://it-ares.com/wp-content/uploads/2024/05/ares-logo.png" oninput="renderV3()">
-                <button onclick="document.getElementById('hero-file').click()" class="bg-gray-100 px-4 rounded font-bold text-xs shrink-0">更換</button>
-                <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="uploadV3Image(this, 'hero')">
+                <button onclick="document.getElementById('hero-file').click()" class="bg-gray-100 px-4 rounded font-bold text-xs shrink-0">📸 上傳新圖</button>
+                <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
               </div>
             </div>
             <div class="grid grid-cols-2 gap-6">
@@ -207,7 +204,7 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-1 h-5 bg-green-500 rounded"></div>
-                <h4 class="font-black text-gray-700 text-[15px]">2. 內容清單管理 (Max 8)</h4>
+                <h4 class="font-black text-gray-700 text-[15px]">2. 內容項目列表 (Max 8)</h4>
               </div>
               <button onclick="addV3Item()" class="text-[#06C755] text-xs font-black border-2 border-[#06C755] px-4 py-1 rounded-full hover:bg-[#06C755] hover:text-white transition-all">+ 新增欄位</button>
             </div>
@@ -216,41 +213,22 @@
         </div>
       </div>
     </div>
-
   </main>
 
-  <!-- 底部導覽列 (Mobile Only) -->
+  <!-- 底部導覽列 (Mobile) -->
   <nav class="bottom-nav md:hidden">
-    <div onclick="showToast('核銷功能即將上線')" class="nav-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
-      <span>核銷</span>
-    </div>
-    <div onclick="showPage('scanner')" class="nav-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-      <span>建立</span>
-    </div>
-    <div onclick="showToast('CRM 看板建設中')" class="nav-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="19" cy="11" r="3"/></svg>
-      <span>CRM</span>
-    </div>
-    <div onclick="showPage('home')" class="nav-btn active">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 8.105 4 4 0 0 0 6.927-1.492"/><path d="M9 13a4.5 4.5 0 0 0 3-4"/><path d="M6.003 5.125A3 3 0 0 0 12 5"/><path d="M20 9a4.95 4.95 0 0 0-4.95 4.95"/><circle cx="14" cy="12" r="1"/><path d="M14 12h6"/><path d="M20 12v6"/></svg>
-      <span>配對</span>
-    </div>
-    <div onclick="showToast('個人名片夾')" class="nav-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18a4 4 0 0 0-8 0"/><circle cx="12" cy="11" r="3"/><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="8" y1="3" x2="8" y2="21"/></svg>
-      <span>名片</span>
-    </div>
-    <div onclick="showToast('系統參數設定')" class="nav-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-      <span>參數</span>
-    </div>
+    <div onclick="showToast('核銷功能即將上線')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg><span>核銷</span></div>
+    <div onclick="showPage('scanner')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg><span>建立</span></div>
+    <div onclick="showToast('CRM 看板')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="19" cy="11" r="3"/></svg><span>CRM</span></div>
+    <div onclick="showPage('home')" class="nav-btn active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 8.105 4 4 0 0 0 6.927-1.492"/><path d="M9 13a4.5 4.5 0 0 0 3-4"/><path d="M6.003 5.125A3 3 0 0 0 12 5"/><path d="M20 9a4.95 4.95 0 0 0-4.95 4.95"/><circle cx="14" cy="12" r="1"/><path d="M14 12h6"/><path d="M20 12v6"/></svg><span>配對</span></div>
+    <div onclick="showToast('個人名片夾')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18a4 4 0 0 0-8 0"/><circle cx="12" cy="11" r="3"/><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>名片</span></div>
+    <div onclick="showToast('設定')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>參數</span></div>
   </nav>
 
   <!-- 系統遮罩 -->
   <div id="loading" class="hidden fixed inset-0 z-[100] bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-12 text-center">
     <div class="w-16 h-16 border-4 border-gray-100 border-t-[#06C755] rounded-full animate-spin mb-6"></div>
-    <h3 class="text-xl font-black text-gray-800" id="loading-text">正在同步...</h3>
+    <h3 class="text-xl font-black text-gray-800" id="loading-text">同步數據中...</h3>
   </div>
   <div id="toast"></div>
 
@@ -259,13 +237,12 @@
       LIFF_ID: "2009367829-zVxIwsKl",
       WORKER_URL: "https://super-snow-506c.ares-co2026.workers.dev/",
       LICENSE_KEY: "ARES-PRO-2024-KEY",
-      ADMIN_UID: "Uf729764dbb5b652a5a90a467320bea29"
+      ADMIN_UID: "Uf729764dbb5b652a5a90a467320bea29",
+      V3_IMAGE_FOLDER_ID: "1ZXxjxglQqPpaLGV5tq4iIjqLqrfD7Zw1" // 您的相片庫
     };
 
     let currentEmpName = "系統管理員";
-    let isAdmin = false;
-    let isPreviewMode = false;
-    let croppedBase64 = null;
+    let isAdmin = false, isPreviewMode = false, croppedBase64 = null;
     
     let v3Items = [
       { title: "【最新認證】2024 年度 ISO 27001 資安認證轉版開始", data: "ares_news_01", img: "https://images.unsplash.com/photo-1554224155-1696413565d3?w=400", btn: "查看", link: "https://it-ares.com/news" },
@@ -281,75 +258,41 @@
           const uid = liff.getContext().userId;
           currentEmpName = profile.displayName;
           isAdmin = (uid === CONFIG.ADMIN_UID);
-          
-          if(isAdmin) {
-             document.getElementById('mobile-view-toggle').classList.remove('hidden');
-          }
-
+          if(isAdmin) document.getElementById('mobile-view-toggle').classList.remove('hidden');
           document.getElementById('welcome-name').innerText = currentEmpName;
           document.getElementById('pc-name').innerText = currentEmpName;
           document.getElementById('mobile-avatar').src = profile.pictureUrl;
           document.getElementById('pc-avatar').src = profile.pictureUrl;
         }
-      } catch (err) { showToast("開發環境"); }
+      } catch (err) { console.warn("開發環境"); }
       renderV3();
       applyViewMode();
     }
 
-    /**
-     * 切換後台/前台預覽模式
-     */
-    function toggleViewMode() {
-      isPreviewMode = !isPreviewMode;
-      applyViewMode();
-      showToast(isPreviewMode ? "切換至業務前台視角" : "回到管理後台視角");
-    }
-
+    function toggleViewMode() { isPreviewMode = !isPreviewMode; applyViewMode(); showToast(isPreviewMode ? "前台預覽" : "後台管理"); }
     function applyViewMode() {
       const btns = document.querySelectorAll('#pc-view-toggle, #mobile-view-toggle');
-      btns.forEach(b => {
-        b.innerText = isPreviewMode ? "前台" : "後台";
-        b.className = isPreviewMode ? "view-toggle user" : "view-toggle admin";
-      });
-
-      // 後台專屬元素切換
-      const adminOnlyElements = ['pc-sidebar', 'admin-card', 'admin-editor-btn'];
-      adminOnlyElements.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          if (isPreviewMode) {
-            el.classList.add('hide-on-preview');
-          } else {
-            el.classList.remove('hide-on-preview');
-          }
-        }
-      });
-
-      // 若在 Editor 頁面強行切換，則跳回 Home
-      if (isPreviewMode && document.getElementById('page-editor').classList.contains('active')) {
-        showPage('home');
-      }
+      btns.forEach(b => { b.innerText = isPreviewMode ? "前台" : "後台"; b.className = isPreviewMode ? "view-toggle user" : "view-toggle admin"; });
+      const adminOnly = ['pc-sidebar', 'admin-card', 'admin-editor-btn'];
+      adminOnly.forEach(id => { const el = document.getElementById(id); if (el) isPreviewMode ? el.classList.add('hide-on-preview') : el.classList.remove('hide-on-preview'); });
+      if (isPreviewMode && document.getElementById('page-editor').classList.contains('active')) showPage('home');
     }
 
     function showPage(pId) {
       document.querySelectorAll('.page-node').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + pId).classList.add('active');
-      document.querySelectorAll('.sidebar-item').forEach(i => {
-        i.classList.remove('active');
-        if(i.dataset.page === pId) i.classList.add('active');
-      });
+      document.querySelectorAll('.sidebar-item').forEach(i => { i.classList.remove('active'); if(i.dataset.page === pId) i.classList.add('active'); });
       window.scrollTo(0, 0);
     }
 
+    // --- V3 編輯與雲端圖片上傳邏輯 ---
     function renderV3() {
       const container = document.getElementById('v3-items-list');
       const mockBody = document.getElementById('v3-mock-body');
       const theme = document.getElementById('v3-theme-color').value;
       const tCol = document.getElementById('v3-text-color').value;
       document.getElementById('v3-mock-hero').src = document.getElementById('v3-hero-url').value;
-
-      container.innerHTML = '';
-      mockBody.innerHTML = '';
+      container.innerHTML = ''; mockBody.innerHTML = '';
 
       v3Items.forEach((item, idx) => {
         const div = document.createElement('div');
@@ -359,13 +302,13 @@
             <div class="w-24 h-24 bg-white border border-gray-200 rounded-lg overflow-hidden shrink-0 relative group">
               <img src="${item.img}" class="w-full h-full object-cover">
               <div onclick="document.getElementById('file-${idx}').click()" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                <span class="text-[11px] text-white font-bold uppercase">上傳</span>
+                <span class="text-[11px] text-white font-bold uppercase">📸 上傳</span>
               </div>
-              <input type="file" id="file-${idx}" class="hidden" accept="image/*" onchange="uploadV3Image(this, ${idx})">
+              <input type="file" id="file-${idx}" class="hidden" accept="image/*" onchange="handleV3Upload(this, ${idx})">
             </div>
             <div class="flex-1 space-y-3">
-              <input type="text" value="${item.title}" class="font-bold text-[15px]" placeholder="標題..." oninput="v3Items[${idx}].title=this.value;renderV3()">
-              <input type="text" value="${item.link}" placeholder="https://..." oninput="v3Items[${idx}].link=this.value;renderV3()" class="text-[13px] font-mono text-blue-500">
+              <input type="text" value="${item.title}" class="font-bold text-[15px]" oninput="v3Items[${idx}].title=this.value;renderV3()">
+              <input type="text" value="${item.link}" placeholder="連結網址" oninput="v3Items[${idx}].link=this.value;renderV3()" class="text-[13px] font-mono text-blue-500">
               <div class="grid grid-cols-2 gap-3">
                 <input type="text" value="${item.data}" placeholder="ID" class="text-[12px]" oninput="v3Items[${idx}].data=this.value;renderV3()">
                 <input type="text" value="${item.btn}" placeholder="按鈕" class="text-[12px] font-bold" oninput="v3Items[${idx}].btn=this.value;renderV3()">
@@ -380,48 +323,72 @@
         mDiv.className = "flex items-center gap-4 p-4 border-b border-gray-50";
         mDiv.innerHTML = `
           <img src="${item.img}" class="w-16 h-16 rounded-lg object-cover">
-          <div class="flex-1 overflow-hidden">
-            <p class="text-[13px] font-bold text-gray-800 line-clamp-2 leading-snug">${item.title}</p>
-            <p class="text-[10px] text-[#06C755] font-black mt-1">RECOMMENDED</p>
-          </div>
-          <a href="${item.link}" target="_blank" style="background:${theme}; color:${tCol}" class="w-11 h-11 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn}</a>
+          <div class="flex-1 overflow-hidden"><p class="text-[13px] font-bold text-gray-800 line-clamp-2 leading-snug">${item.title}</p><p class="text-[10px] text-[#06C755] font-black mt-1">RECOMMENDED</p></div>
+          <div style="background:${theme}; color:${tCol}" class="w-11 h-11 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn}</div>
         `;
         mockBody.appendChild(mDiv);
       });
     }
 
-    function uploadV3Image(input, target) {
+    /**
+     * V3 專屬：上傳圖片至指定資料夾 (1ZXxjxgl...)
+     */
+    async function handleV3Upload(input, targetIdx) {
       if (!input.files || !input.files[0]) return;
-      showLoading("優化中...");
+      showLoading("優化並上傳雲端相片庫...");
+      
+      const file = input.files[0];
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
-        img.onload = function() {
+        img.onload = async function() {
+          // 避開雷區 1：前端壓縮
           const canvas = document.createElement('canvas');
           const maxW = 800;
           let w = img.width, h = img.height;
           if (w > maxW) { h = (maxW / w) * h; w = maxW; }
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          const base64 = canvas.toDataURL('image/jpeg', 0.7);
-          if (target === 'hero') { document.getElementById('v3-hero-url').value = base64; }
-          else { v3Items[target].img = base64; }
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+          try {
+            // 調用 Worker 進行雲端存檔
+            const response = await fetch(CONFIG.WORKER_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                licenseKey: CONFIG.LICENSE_KEY,
+                action: "uploadImage", // 新增 action
+                folderId: CONFIG.V3_IMAGE_FOLDER_ID,
+                fileName: `V3_Item_${Date.now()}.jpg`,
+                image: compressedBase64.split(',')[1]
+              })
+            });
+            const res = await response.json();
+            if (res.success) {
+              if (targetIdx === 'hero') document.getElementById('v3-hero-url').value = res.url;
+              else v3Items[targetIdx].img = res.url;
+              showToast("✅ 相片已成功存入雲端庫");
+            } else {
+              showToast("❌ 上傳失敗：" + res.error);
+            }
+          } catch (err) { showToast("連線異常"); }
           hideLoading(); renderV3();
         };
         img.src = e.target.result;
       };
-      reader.readAsDataURL(input.files[0]);
+      reader.readAsDataURL(file);
     }
 
     function addV3Item() {
       if(v3Items.length >= 8) return showToast("最多 8 個項目");
-      v3Items.push({ title: "新戰報標題...", data: "item_id", img: "https://aiwe.cc/wp-content/uploads/2026/02/87e6f8054bd3672f2885e38bddb112e2.png", btn: "查看", link: "" });
+      v3Items.push({ title: "新戰報標題...", data: "new_item", img: "https://aiwe.cc/wp-content/uploads/2026/02/87e6f8054bd3672f2885e38bddb112e2.png", btn: "查看", link: "" });
       renderV3();
     }
 
     async function saveV3Content() {
       const data = { hero: document.getElementById('v3-hero-url').value, theme: document.getElementById('v3-theme-color').value, text: document.getElementById('v3-text-color').value, items: v3Items };
-      showLoading("發布中...");
+      showLoading("發布至 OA 戰情室...");
       try {
         const response = await fetch(CONFIG.WORKER_URL, {
           method: "POST",
@@ -430,10 +397,11 @@
         });
         const res = await response.json();
         hideLoading();
-        if (res.success) { showToast("✅ 已發布"); showPage('home'); }
-      } catch (e) { hideLoading(); showToast("錯誤"); }
+        if (res.success) { showToast("✅ 戰報已全域發布"); showPage('home'); }
+      } catch (e) { hideLoading(); showToast("連線錯誤"); }
     }
 
+    // --- 名片掃描辨識 ---
     function handleFile(input) {
       if (!input.files || !input.files[0]) return;
       const reader = new FileReader();
@@ -462,29 +430,21 @@
           document.getElementById('step-capture').classList.add('hidden');
           document.getElementById('step-review').classList.remove('hidden');
         }
-      } catch (err) { hideLoading(); showToast("辨識異常"); }
+      } catch (err) { hideLoading(); showToast("辨識超時"); }
     }
 
     async function saveCard() {
       const data = { name: document.getElementById('res-name').value, company: document.getElementById('res-company').value, title: document.getElementById('res-title').value, phone: document.getElementById('res-phone').value, email: document.getElementById('res-email').value, address: document.getElementById('res-address').value, imgBase64: croppedBase64 };
-      showLoading("存檔中...");
+      showLoading("歸屬數據中...");
       try {
-        await fetch(CONFIG.WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "save", empName: currentEmpName, data: data })
-        });
-        hideLoading(); showToast("✅ 已歸屬至 " + currentEmpName); location.reload();
+        await fetch(CONFIG.WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "save", empName: currentEmpName, data: data }) });
+        hideLoading(); showToast("✅ 已歸屬存檔至：" + currentEmpName); location.reload();
       } catch (e) { hideLoading(); showToast("失敗"); }
     }
 
     function showLoading(t) { document.getElementById('loading-text').innerText = t; document.getElementById('loading').classList.remove('hidden'); }
     function hideLoading() { document.getElementById('loading').classList.add('hidden'); }
-    function showToast(m) {
-      const t = document.getElementById('toast');
-      t.innerText = m; t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 3000);
-    }
+    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3000); }
 
     window.onload = initLiff;
   </script>
