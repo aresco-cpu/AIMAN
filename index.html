@@ -28,39 +28,37 @@
     .sidebar-item:hover { background: #222; color: #fff; }
     .sidebar-item.active { background: #222; color: #fff; border-left: 4px solid var(--line-green); padding-left: 20px; }
     
-    /* 底部導覽列 (Mobile) */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--line-border); height: 70px; display: flex; z-index: 60; }
-    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2C3E50; font-size: 11px; font-weight: bold; gap: 4px; transition: 0.2s; }
-    .nav-btn svg { width: 22px; height: 22px; stroke-width: 2; opacity: 0.8; }
-    .nav-btn.active { color: #E91E63; }
+    /* 底部導覽列 (Mobile) 依照截圖修訂 */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--line-border); height: 75px; display: flex; z-index: 60; padding-bottom: env(safe-area-inset-bottom); }
+    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #1E293B; font-size: 11px; font-weight: 900; gap: 4px; transition: 0.2s; }
+    .nav-btn svg { width: 24px; height: 24px; }
+    .nav-btn.active { color: #E91E63; } /* 匹配配對選中態 */
     
     /* V3 編輯佈局 */
     .editor-grid { display: grid; grid-template-columns: 360px 1fr; gap: 30px; }
     .flex-preview { background: #fff; border: 1px solid var(--line-border); border-radius: 12px; padding: 20px; position: sticky; top: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .mock-bubble { border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; background: #fff; }
+    .mock-bubble { border: 1px solid #eee; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; background: #fff; }
     
     /* 輸入框 OA 化 */
     input, select, textarea { border: 1px solid #D1D5DB; border-radius: 4px; padding: 10px 14px; font-size: 14px; width: 100%; }
     input:focus { border-color: var(--line-green); outline: none; box-shadow: 0 0 0 2px rgba(6, 199, 85, 0.1); }
-    label { font-size: 13px; font-weight: 800; color: #64748B; margin-bottom: 6px; display: block; text-transform: uppercase; }
+    label { font-size: 12px; font-weight: 900; color: #475569; margin-bottom: 6px; display: block; }
 
     .view-toggle { padding: 4px 12px; border-radius: 50px; font-size: 11px; font-weight: 900; cursor: pointer; transition: 0.3s; }
     .view-toggle.admin { background: #FDE68A; color: #92400E; }
     .view-toggle.user { background: #E2E8F0; color: #475569; }
 
-    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: #fff; padding: 12px 28px; border-radius: 50px; font-size: 13px; z-index: 2000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 12px 30px; border-radius: 50px; font-size: 13px; z-index: 2000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
 
-    /* 前台預覽純淨模式 */
+    /* 前台純淨模式 */
     body.is-preview { background-color: #fff; }
-    body.is-preview .sidebar, body.is-preview .md\:hidden.flex.sticky { display: none !important; }
-    body.is-preview .main-view { margin-left: 0 !important; padding: 0 !important; }
+    body.is-preview .sidebar, body.is-preview .md\:hidden.flex.sticky, body.is-preview .bottom-nav { display: none !important; }
 
     @media (max-width: 768px) {
       .sidebar { display: none; }
       .main-view { margin-left: 0 !important; padding-bottom: 100px !important; }
       .editor-grid { grid-template-columns: 1fr; }
       .flex-preview { position: static; }
-      .hide-on-preview { display: none !important; }
     }
   </style>
 </head>
@@ -71,7 +69,7 @@
     <div class="p-8">
       <div class="flex items-center gap-3">
         <div class="w-2 h-8 bg-[#06C755] rounded-full"></div>
-        <h2 class="text-xl font-black text-white tracking-tighter">戰情後台</h2>
+        <h2 class="text-xl font-black text-white tracking-tighter uppercase">Admin Panel</h2>
       </div>
       <div class="mt-4 flex items-center justify-between bg-[#1a1a1a] p-2 rounded-lg border border-gray-800">
          <span class="text-[10px] text-gray-500 font-bold ml-2">切換視角</span>
@@ -97,7 +95,6 @@
     <div class="flex items-center gap-3">
       <span class="w-1 h-5 bg-[#06C755]"></span>
       <h1 class="font-black text-gray-800 tracking-tight">ACT-BizCard AI</h1>
-      <button id="mobile-view-toggle" onclick="toggleViewMode()" class="hidden view-toggle admin">後台</button>
     </div>
     <img src="" id="mobile-avatar" class="w-8 h-8 rounded-full border border-gray-100 bg-gray-50">
   </header>
@@ -105,50 +102,50 @@
   <!-- 3. Main Workspace -->
   <main class="main-view md:ml-[240px] p-4 md:p-10 transition-all duration-300">
     
-    <!-- 頁面：儀表板 (後台主頁) -->
+    <!-- 首頁儀表板 -->
     <div id="page-home" class="page-node active space-y-6">
       <div class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm">
-        <h3 class="text-2xl font-bold text-gray-800">您好，<span id="welcome-name">Tonyfang</span></h3>
-        <p class="text-gray-400 text-[14px] mt-1">目前管理範圍：30 位業務人員 | 相片雲端庫已就緒</p>
+        <h3 class="text-2xl font-bold text-gray-800 tracking-tight">您好，<span id="welcome-name" class="text-green-600">Tonyfang</span></h3>
+        <p class="text-gray-400 text-[13px] mt-1 font-medium">相片庫連線狀態：正常 | 資料夾 ID：1ZXxjxgl...Zw1</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div id="admin-card" class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm">
-          <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">當月採集總量</p>
+          <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">當月採集量</p>
           <h4 class="text-5xl font-black text-gray-800 mt-2 tracking-tighter">382</h4>
-          <p class="text-[12px] text-green-500 font-bold mt-4">↑ 12% 較上月增長</p>
+          <p class="text-[12px] text-green-500 font-black mt-4 uppercase">↑ Growth +12%</p>
         </div>
         <div onclick="showPage('scanner')" class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
           <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">📸</div>
-          <h5 class="font-bold text-gray-800 text-[16px]">名片掃描入庫</h5>
-          <p class="text-sm text-gray-400 mt-1">GPT-4o AI 自動解析歸屬</p>
+          <h5 class="font-black text-gray-800 text-[16px]">名片掃描</h5>
+          <p class="text-sm text-gray-400 mt-1 font-medium">AI 辨識並同步至 Drive</p>
         </div>
         <div id="admin-editor-btn" onclick="showPage('editor')" class="bg-white p-8 border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
           <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎨</div>
-          <h5 class="font-bold text-gray-800 text-[16px]">V3 戰報編輯</h5>
-          <p class="text-sm text-gray-400 mt-1">管理 Flex Message 內容</p>
+          <h5 class="font-black text-gray-800 text-[16px]">V3 戰報編輯</h5>
+          <p class="text-sm text-gray-400 mt-1 font-medium">管理 Flex 行銷模板</p>
         </div>
       </div>
     </div>
 
-    <!-- 頁面：前台預覽 (客戶看到的樣子) -->
-    <div id="page-user-preview" class="page-node max-w-[400px] mx-auto pt-6 md:pt-10">
-        <p class="text-center text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Mobile Front-end View</p>
-        <div class="mock-bubble overflow-hidden mx-auto">
+    <!-- 前台預覽 -->
+    <div id="page-user-preview" class="page-node max-w-[380px] mx-auto pt-6 md:pt-10">
+        <p class="text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4">Mobile Front-end Preview</p>
+        <div class="mock-bubble overflow-hidden mx-auto border-0">
             <img id="v3-user-hero" src="" class="w-full aspect-[12/5] object-cover bg-gray-100">
             <div id="v3-user-body" class="bg-white"></div>
-            <div class="p-3 bg-gray-50 flex justify-center gap-6 border-t border-gray-100">
-                <div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+            <div class="p-4 bg-gray-50 flex justify-center gap-8 border-t border-gray-100">
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
             </div>
         </div>
-        <div class="p-10 text-center space-y-4">
-            <button onclick="toggleViewMode()" class="bg-gray-800 text-white px-8 py-3 rounded-full text-xs font-bold shadow-lg">返回管理後台</button>
+        <div class="p-12 text-center">
+            <button onclick="toggleViewMode()" class="bg-gray-900 text-white px-10 py-3 rounded-full text-xs font-black shadow-xl tracking-widest uppercase">Back to Dashboard</button>
         </div>
     </div>
 
-    <!-- 頁面：AI 掃描器 -->
+    <!-- AI 掃描器 -->
     <div id="page-scanner" class="page-node max-w-2xl mx-auto">
       <div id="step-capture" class="bg-white p-12 border border-gray-200 rounded-2xl text-center space-y-6">
         <div class="aspect-[1.58/1] w-full border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center bg-gray-50 relative group cursor-pointer overflow-hidden">
@@ -169,26 +166,26 @@
         <div><label>職稱</label><input type="text" id="res-title"></div>
         <div><label>Email</label><input type="text" id="res-email"></div>
         <div><label>地址</label><textarea id="res-address" class="h-20 resize-none"></textarea></div>
-        <button id="save-card-btn" onclick="saveCard()" class="w-full bg-[#06C755] text-white py-4 rounded-xl font-black text-lg hover:bg-[#05b34c] transition-all shadow-lg">確認並同步入庫</button>
+        <button id="save-card-btn" onclick="saveCard()" class="w-full bg-[#06C755] text-white py-4 rounded-xl font-black text-lg hover:bg-[#05b34c] transition-all shadow-lg">確認數據並存檔</button>
       </div>
     </div>
 
-    <!-- 頁面：V3 編輯器 -->
+    <!-- V3 編輯器 -->
     <div id="page-editor" class="page-node">
-      <div class="flex items-center justify-between mb-8 border-b pb-4">
+      <div class="flex items-center justify-between mb-8 border-b pb-6">
         <div>
-          <h2 class="text-2xl font-black text-gray-800">V3 戰報模板編輯中心</h2>
-          <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">相片庫 ID：1ZXxjxglQqPpaLGV5tq4iIjqLqrfD7Zw1</p>
+          <h2 class="text-2xl font-black text-gray-800">V3 戰報模板編輯器</h2>
+          <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Image Storage: Google Drive Linked</p>
         </div>
         <button id="publish-v3-btn" onclick="saveV3Content()" class="bg-[#06C755] text-white px-10 py-3 rounded-lg font-black shadow-lg hover:scale-105 transition-all">發布變更</button>
       </div>
 
       <div class="editor-grid">
-        <!-- 預覽側 -->
+        <!-- 預覽 -->
         <div class="flex-preview no-scrollbar">
-          <p class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Mobile Edit Preview</p>
+          <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Live Preview (Mobile)</p>
           <div class="mock-bubble">
-            <img id="v3-mock-hero" src="" class="w-full aspect-[12/5] object-cover bg-gray-100">
+            <img id="v3-mock-hero" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="w-full aspect-[12/5] object-cover bg-gray-100">
             <div id="v3-mock-body" class="bg-white"></div>
             <div class="p-3 bg-gray-50 flex justify-center gap-6 border-t">
               <div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
@@ -196,29 +193,26 @@
               <div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
             </div>
           </div>
-          <div class="mt-6 p-4 bg-amber-50 rounded-lg text-[12px] text-amber-700 font-medium leading-relaxed border border-amber-100">
-            ※ 注意：上傳新圖片會立即保存至 Google Drive，發布按鈕則更新 Flex Message 配置。
-          </div>
         </div>
 
-        <!-- 編輯側 -->
+        <!-- 編輯 -->
         <div class="space-y-8 pb-20">
           <div class="bg-white p-8 border rounded-xl shadow-sm space-y-6">
             <div class="flex items-center gap-3">
               <div class="w-1 h-5 bg-green-500 rounded"></div>
-              <h4 class="font-black text-gray-700 text-[15px]">1. 品牌主視覺設定</h4>
+              <h4 class="font-black text-gray-700 text-[15px]">1. 品牌主視覺</h4>
             </div>
             <div>
-              <label>頂部主圖片 (推薦 1200x500)</label>
+              <label>頂部主圖片 (Hero Image)</label>
               <div class="flex gap-3">
-                <input type="text" id="v3-hero-url" value="https://it-ares.com/wp-content/uploads/2024/05/ares-logo.png" oninput="renderV3()">
-                <button onclick="document.getElementById('hero-file').click()" class="bg-gray-100 px-4 rounded font-bold text-xs shrink-0 hover:bg-gray-200 transition-colors">📸 上傳新圖</button>
+                <input type="text" id="v3-hero-url" placeholder="輸入網址或上傳..." oninput="renderV3()">
+                <button onclick="document.getElementById('hero-file').click()" class="bg-gray-100 px-4 rounded font-black text-[10px] shrink-0 hover:bg-gray-200 uppercase">Upload</button>
                 <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
               </div>
             </div>
             <div class="grid grid-cols-2 gap-6">
-              <div><label>主題顏色 (HEX)</label><input type="color" id="v3-theme-color" value="#0056b3" class="h-12 cursor-pointer p-1" oninput="renderV3()"></div>
-              <div><label>按鈕文字色</label><input type="color" id="v3-text-color" value="#ffffff" class="h-12 cursor-pointer p-1" oninput="renderV3()"></div>
+              <div><label>主題色</label><input type="color" id="v3-theme-color" value="#E91E63" class="h-12 cursor-pointer p-1" oninput="renderV3()"></div>
+              <div><label>按鈕字色</label><input type="color" id="v3-text-color" value="#ffffff" class="h-12 cursor-pointer p-1" oninput="renderV3()"></div>
             </div>
           </div>
 
@@ -226,9 +220,9 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-1 h-5 bg-green-500 rounded"></div>
-                <h4 class="font-black text-gray-700 text-[15px]">2. 列表項目內容 (Max 8)</h4>
+                <h4 class="font-black text-gray-700 text-[15px]">2. 列表內容管理 (Max 8)</h4>
               </div>
-              <button onclick="addV3Item()" class="text-[#06C755] text-xs font-black border-2 border-[#06C755] px-4 py-1.5 rounded-full hover:bg-[#06C755] hover:text-white transition-all">+ 新增欄位</button>
+              <button onclick="addV3Item()" class="text-[#06C755] text-xs font-black border-2 border-[#06C755] px-5 py-1.5 rounded-full hover:bg-[#06C755] hover:text-white transition-all">+ 新增項目</button>
             </div>
             <div id="v3-items-list" class="space-y-4"></div>
           </div>
@@ -237,20 +231,20 @@
     </div>
   </main>
 
-  <!-- 底部導覽列 (Mobile) -->
+  <!-- 底部導覽列 (Mobile) 依照截圖順序修正 -->
   <nav id="bottom-nav" class="bottom-nav md:hidden">
-    <div onclick="showToast('核銷功能即將上線')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg><span>核銷</span></div>
-    <div onclick="showPage('scanner')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg><span>建立</span></div>
-    <div onclick="showToast('CRM 看板')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="19" cy="11" r="3"/></svg><span>CRM</span></div>
-    <div id="btn-match" onclick="toggleViewMode()" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 8.105 4 4 0 0 0 6.927-1.492"/><path d="M9 13a4.5 4.5 0 0 0 3-4"/><path d="M6.003 5.125A3 3 0 0 0 12 5"/><path d="M20 9a4.95 4.95 0 0 0-4.95 4.95"/><circle cx="14" cy="12" r="1"/><path d="M14 12h6"/><path d="M20 12v6"/></svg><span>配對</span></div>
-    <div onclick="showToast('名片夾')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18a4 4 0 0 0-8 0"/><circle cx="12" cy="11" r="3"/><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>名片</span></div>
-    <div onclick="showPage('home')" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>參數</span></div>
+    <div onclick="showToast('核銷')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4m-2 12v4a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg><span>核銷</span></div>
+    <div onclick="showPage('scanner')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg><span>建立</span></div>
+    <div onclick="showToast('CRM')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-linecap="round"/></svg><span>CRM</span></div>
+    <div id="btn-match" onclick="toggleViewMode()" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 14.5L12 12m0 0l2.5-2.5M12 12l2.5 2.5M12 12l-2.5-2.5M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" stroke-linecap="round"/></svg><span>配對</span></div>
+    <div onclick="showToast('名片')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>名片</span></div>
+    <div onclick="showPage('home')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round"/></svg><span>參數</span></div>
   </nav>
 
   <!-- 遮罩與提示 -->
   <div id="loading" class="hidden fixed inset-0 z-[100] bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-12 text-center">
     <div class="w-16 h-16 border-4 border-gray-100 border-t-[#06C755] rounded-full animate-spin mb-6"></div>
-    <h3 class="text-xl font-bold text-gray-800" id="loading-text">處理中...</h3>
+    <h3 class="text-xl font-black text-gray-800" id="loading-text">處理中...</h3>
   </div>
   <div id="toast"></div>
 
@@ -265,8 +259,8 @@
 
     let currentEmpName = "系統管理員", isAdmin = false, isPreviewMode = false, croppedBase64 = null;
     let v3Items = [
-      { title: "【最新認證】2024 年度 ISO 27001 資安認證轉版開始", data: "ares_news_01", img: "https://images.unsplash.com/photo-1554224155-1696413565d3?w=400", btn: "查看", link: "https://it-ares.com/news" },
-      { title: "【專業課程】碳權抵換實務班報名中", data: "ares_class_01", img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400", btn: "預約", link: "https://it-ares.com/courses" }
+      { title: "【最新認證】2024 年度 ISO 27001 資安認證轉版開始", data: "news_01", img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", btn: "查看", link: "" },
+      { title: "【專業課程】碳權抵換實務班報名中", data: "news_02", img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", btn: "預約", link: "" }
     ];
 
     async function initLiff() {
@@ -278,13 +272,12 @@
           const uid = liff.getContext().userId;
           currentEmpName = profile.displayName;
           isAdmin = (uid === CONFIG.ADMIN_UID);
-          if(isAdmin) document.getElementById('mobile-view-toggle').classList.remove('hidden');
           document.getElementById('welcome-name').innerText = currentEmpName;
           document.getElementById('pc-name').innerText = currentEmpName;
           document.getElementById('mobile-avatar').src = profile.pictureUrl;
           document.getElementById('pc-avatar').src = profile.pictureUrl;
         }
-      } catch (err) { console.warn("Developer Mode"); }
+      } catch (err) { console.warn("Dev Mode"); }
       renderV3();
       applyViewMode();
     }
@@ -292,7 +285,7 @@
     function toggleViewMode() { 
       isPreviewMode = !isPreviewMode; 
       applyViewMode(); 
-      showToast(isPreviewMode ? "已切換至：前台預覽視角" : "已切換至：管理後台視角"); 
+      showToast(isPreviewMode ? "前台預覽視角" : "管理後台視角"); 
     }
 
     function applyViewMode() {
@@ -307,10 +300,9 @@
       } else {
         body.classList.remove('is-preview');
         showPage('home');
-        document.getElementById('btn-match').classList.remove('active');
       }
       
-      const btns = document.querySelectorAll('#pc-view-toggle, #mobile-view-toggle');
+      const btns = document.querySelectorAll('#pc-view-toggle');
       btns.forEach(b => { 
         b.innerText = isPreviewMode ? "前台" : "後台"; 
         b.className = isPreviewMode ? "view-toggle user" : "view-toggle admin"; 
@@ -325,7 +317,6 @@
       if (pId === 'user-preview') syncUserPreview();
     }
 
-    // --- V3 渲染與預覽同步 ---
     function renderV3() {
       const container = document.getElementById('v3-items-list');
       const mockBody = document.getElementById('v3-mock-body');
@@ -339,19 +330,19 @@
         div.className = "bg-gray-50 border border-gray-200 rounded-xl p-5 relative space-y-4";
         div.innerHTML = `
           <div class="flex gap-5 items-start">
-            <div class="w-24 h-24 bg-white border border-gray-200 rounded-lg overflow-hidden shrink-0 relative group">
+            <div class="w-24 h-24 bg-white border rounded-lg overflow-hidden shrink-0 relative group">
               <img src="${item.img}" class="w-full h-full object-cover">
               <div onclick="document.getElementById('file-${idx}').click()" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                <span class="text-[11px] text-white font-bold uppercase">📸 更換</span>
+                <span class="text-[11px] text-white font-black uppercase">Upload</span>
               </div>
               <input type="file" id="file-${idx}" class="hidden" accept="image/*" onchange="handleV3Upload(this, ${idx})">
             </div>
             <div class="flex-1 space-y-3">
-              <input type="text" value="${item.title}" class="font-bold text-[15px]" oninput="v3Items[${idx}].title=this.value;renderV3()">
-              <input type="text" value="${item.link}" placeholder="https://..." oninput="v3Items[${idx}].link=this.value;renderV3()" class="text-[13px] font-mono text-blue-500">
-              <div class="grid grid-cols-2 gap-3">
-                <input type="text" value="${item.data}" placeholder="ID" oninput="v3Items[${idx}].data=this.value;renderV3()">
-                <input type="text" value="${item.btn}" oninput="v3Items[${idx}].btn=this.value;renderV3()">
+              <input type="text" value="${item.title}" class="font-black text-[15px] p-2" oninput="v3Items[${idx}].title=this.value;renderV3()">
+              <input type="text" value="${item.link}" placeholder="連結 (https://...)" oninput="v3Items[${idx}].link=this.value;renderV3()" class="text-[12px] font-mono p-2">
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" value="${item.data}" placeholder="ID" class="text-[11px] p-2" oninput="v3Items[${idx}].data=this.value;renderV3()">
+                <input type="text" value="${item.btn}" class="text-[11px] p-2 font-bold" oninput="v3Items[${idx}].btn=this.value;renderV3()">
               </div>
             </div>
           </div>
@@ -369,33 +360,35 @@
     function syncUserPreview() {
       const theme = document.getElementById('v3-theme-color').value;
       const tCol = document.getElementById('v3-text-color').value;
-      document.getElementById('v3-user-hero').src = document.getElementById('v3-hero-url').value;
+      document.getElementById('v3-user-hero').src = document.getElementById('v3-hero-url').value || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
       const body = document.getElementById('v3-user-body');
       body.innerHTML = '';
       v3Items.forEach(item => {
         const d = document.createElement('div');
         d.className = "flex items-center gap-4 p-4 border-b border-gray-50";
-        d.innerHTML = `<img src="${item.img}" class="w-16 h-16 rounded-lg object-cover"><div class="flex-1 overflow-hidden"><p class="text-[13px] font-bold text-gray-800 line-clamp-2">${item.title}</p><p class="text-[10px] text-[#06C755] font-black mt-1 uppercase">Recommended</p></div><div style="background:${theme}; color:${tCol}" class="w-11 h-11 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn}</div>`;
+        d.innerHTML = `<img src="${item.img}" class="w-16 h-16 rounded-lg object-cover"><div class="flex-1 overflow-hidden"><p class="text-[13px] font-bold text-gray-800 line-clamp-2 leading-tight">${item.title}</p><p class="text-[10px] text-[#06C755] font-black mt-1 uppercase">Recommended</p></div><div style="background:${theme}; color:${tCol}" class="w-11 h-11 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn}</div>`;
         body.appendChild(d);
       });
     }
 
-    // --- 圖片上傳壓縮避坑實作 (雷區 1) ---
+    // --- 實作手冊建議：前端 Canvas 壓縮 ---
     async function handleV3Upload(input, targetIdx) {
       if (!input.files || !input.files[0]) return;
-      showLoading("正在極速優化並上傳...");
+      showLoading("影像優化中 (雷區 1 規避)...");
       
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
         img.onload = async function() {
           const canvas = document.createElement('canvas');
-          const maxW = 600; // 降低寬度以確保連線不中斷
+          const maxW = 800; // 手冊建議
           let w = img.width, h = img.height;
           if (w > maxW) { h = (maxW / w) * h; w = maxW; }
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); // 降低畫質至 0.6
+          
+          // 手冊建議品質 0.7
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
 
           try {
             const response = await fetch(CONFIG.WORKER_URL, {
@@ -405,20 +398,22 @@
                 licenseKey: CONFIG.LICENSE_KEY,
                 action: "uploadImage",
                 folderId: CONFIG.V3_IMAGE_FOLDER_ID,
-                fileName: `V3_${Date.now()}.jpg`,
+                fileName: `V3_Web_${Date.now()}.jpg`,
                 image: compressedBase64.split(',')[1]
               })
             });
-            if (!response.ok) throw new Error("Server Closed Connection");
             const res = await response.json();
             if (res.success) {
               if (targetIdx === 'hero') document.getElementById('v3-hero-url').value = res.url;
               else v3Items[targetIdx].img = res.url;
-              showToast("✅ 影像已上傳至雲端相片庫");
+              showToast("✅ 影像已存至雲端庫");
             } else throw new Error(res.error);
           } catch (err) { 
             console.error(err);
-            showToast("❌ 上傳失敗 (ERR_CONNECTION_CLOSED)，請嘗試更小的檔案。"); 
+            // 容錯機制：若 Drive 上傳失敗，採雷區 4 建議直接用 Base64
+            if (targetIdx === 'hero') document.getElementById('v3-hero-url').value = compressedBase64;
+            else v3Items[targetIdx].img = compressedBase64;
+            showToast("⚠️ 雲端失敗，已改用 Base64 暫存"); 
           }
           hideLoading(); renderV3();
         };
@@ -428,15 +423,13 @@
     }
 
     function addV3Item() {
-      v3Items.push({ title: "新戰報標題...", data: "item_" + Date.now(), img: "https://aiwe.cc/wp-content/uploads/2026/02/87e6f8054bd3672f2885e38bddb112e2.png", btn: "查看", link: "" });
+      v3Items.push({ title: "新戰報標題...", data: "new", img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", btn: "查看", link: "" });
       renderV3();
     }
 
     async function saveV3Content() {
-      const btn = document.getElementById('publish-v3-btn');
-      btn.disabled = true;
       const data = { hero: document.getElementById('v3-hero-url').value, theme: document.getElementById('v3-theme-color').value, text: document.getElementById('v3-text-color').value, items: v3Items };
-      showLoading("同步至 OA 戰情室...");
+      showLoading("同步至戰情室...");
       try {
         const response = await fetch(CONFIG.WORKER_URL, {
           method: "POST",
@@ -445,12 +438,10 @@
         });
         const res = await response.json();
         hideLoading();
-        if (res.success) { showToast("✅ 戰報已全域發布"); showPage('home'); }
-      } catch (e) { hideLoading(); showToast("連線異常，請檢查網路。"); }
-      btn.disabled = false;
+        if (res.success) { showToast("✅ 戰報發布成功"); showPage('home'); }
+      } catch (e) { hideLoading(); showToast("連線異常"); }
     }
 
-    // --- 名片掃描 ---
     function handleFile(input) {
       if (!input.files || !input.files[0]) return;
       const reader = new FileReader();
@@ -479,18 +470,16 @@
           document.getElementById('step-capture').classList.add('hidden');
           document.getElementById('step-review').classList.remove('hidden');
         }
-      } catch (err) { hideLoading(); showToast("辨識連線中斷，請重試"); }
+      } catch (err) { hideLoading(); showToast("辨識超時"); }
     }
 
     async function saveCard() {
-      const btn = document.getElementById('save-card-btn');
-      btn.disabled = true;
       const data = { name: document.getElementById('res-name').value, company: document.getElementById('res-company').value, title: document.getElementById('res-title').value, phone: document.getElementById('res-phone').value, email: document.getElementById('res-email').value, address: document.getElementById('res-address').value, imgBase64: croppedBase64 };
-      showLoading("歸屬數據中...");
+      showLoading("同步數據中...");
       try {
         await fetch(CONFIG.WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "save", empName: currentEmpName, data: data }) });
-        hideLoading(); showToast("✅ 已成功入庫：" + currentEmpName); location.reload();
-      } catch (e) { hideLoading(); showToast("存檔失敗"); btn.disabled = false; }
+        hideLoading(); showToast("✅ 已同步入庫：" + currentEmpName); location.reload();
+      } catch (e) { hideLoading(); showToast("失敗"); }
     }
 
     function showLoading(t) { document.getElementById('loading-text').innerText = t; document.getElementById('loading').classList.remove('hidden'); }
