@@ -3,150 +3,219 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ACT-BizCard 名片採集器</title>
+  <title>ACT-BizCard 業務戰情中心</title>
+  <!-- 載入核心元件 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
-    .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
+    .loader { border-top-color: #3b82f6; animation: spinner 1s linear infinite; }
     @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .page-node { display: none; }
+    .page-node.active { display: block; }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900 overflow-x-hidden">
 
-  <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col bg-white shadow-xl relative">
-    <!-- Header -->
-    <header class="p-6 border-b bg-white sticky top-0 z-20 shadow-sm">
-      <h1 class="text-xl font-extrabold text-slate-800">ACT-BizCard <span class="text-blue-600">AI</span></h1>
-      <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Business Card Collector v2.0</p>
+  <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col bg-white shadow-2xl relative">
+    
+    <!-- 全局標頭 (包含 LIFF 識別) -->
+    <header class="p-6 border-b bg-white sticky top-0 z-20 flex justify-between items-center">
+      <div onclick="showPage('home')" class="cursor-pointer">
+        <h1 class="text-xl font-black text-slate-800 tracking-tight">ACT-BizCard <span class="text-blue-600">AI</span></h1>
+        <div id="user-info" class="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+          <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> 
+          <span id="status-text">正在識別身分...</span>
+        </div>
+      </div>
+      <div id="user-avatar" class="w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden hidden">
+        <img src="" id="avatar-img" class="w-full h-full object-cover">
+      </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-6 overflow-y-auto no-scrollbar pb-24">
-      <div id="step-capture" class="space-y-6">
-        <div class="aspect-[1.58/1] w-full border-4 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden group">
-          <input type="file" id="cameraInput" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="handleFile(this)">
-          <div class="text-center group-hover:scale-110 transition-transform">
-            <div class="text-4xl mb-2">📸</div>
-            <p class="text-sm font-bold text-slate-500">拍攝名片或上傳照片</p>
+    <main class="flex-1 overflow-y-auto no-scrollbar pb-10">
+      
+      <!-- 頁面：導覽首頁 (v2.1 最新門戶介面) -->
+      <div id="page-home" class="page-node active p-6 space-y-6">
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+          <div class="relative z-10">
+            <h2 class="text-2xl font-black mb-1">您好，<span id="welcome-name">業務夥伴</span></h2>
+            <p class="text-blue-100 text-xs font-bold opacity-80 uppercase tracking-widest">Business Intelligence v2.1</p>
           </div>
+          <div class="absolute -right-4 -bottom-4 text-8xl opacity-10">🚀</div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <!-- AI 掃描入口 -->
+          <button onclick="showPage('scanner')" class="flex items-center gap-6 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-blue-500 transition-all text-left group">
+            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">📸</div>
+            <div>
+              <h3 class="font-black text-slate-800">名片 AI 採集</h3>
+              <p class="text-[11px] text-slate-400 font-bold">GPT-4o 辨識並自動歸屬</p>
+            </div>
+          </button>
+
+          <!-- V3 編輯入口 -->
+          <button onclick="showPage('editor')" class="flex items-center gap-6 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-green-500 transition-all text-left group">
+            <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">🎨</div>
+            <div>
+              <h3 class="font-black text-slate-800">V3 戰報發布</h3>
+              <p class="text-[11px] text-slate-400 font-bold">編輯新聞與課程廣告內容</p>
+            </div>
+          </button>
         </div>
       </div>
 
-      <div id="step-crop" class="hidden fixed inset-0 z-50 bg-black flex flex-col">
-        <div class="p-4 flex justify-between items-center bg-black/50 backdrop-blur text-white">
-          <button onclick="cancelCrop()" class="px-4 py-2 font-bold text-sm">取消</button>
-          <span class="font-bold">名片裁切</span>
-          <button onclick="confirmCrop()" class="px-6 py-2 bg-blue-600 rounded-full font-bold text-sm shadow-lg">確認</button>
+      <!-- 頁面：AI 掃描器 -->
+      <div id="page-scanner" class="page-node p-6 space-y-6">
+        <div id="step-capture" class="space-y-6">
+          <div class="aspect-[1.58/1] w-full border-4 border-dashed border-slate-200 rounded-[2.5rem] flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden group">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="handleFile(this)">
+            <div class="text-center group-hover:scale-110 transition-transform">
+              <div class="text-5xl mb-4">📸</div>
+              <p class="text-sm font-black text-slate-500">拍攝名片照片</p>
+            </div>
+          </div>
+          <button onclick="showPage('home')" class="w-full py-3 text-slate-400 font-bold text-xs text-center uppercase tracking-widest">返回導覽中心</button>
         </div>
-        <div class="flex-1 relative bg-slate-900 overflow-hidden flex items-center justify-center">
-          <img id="cropTarget" class="max-w-full">
-        </div>
-      </div>
 
-      <div id="step-review" class="hidden space-y-6">
-        <div class="space-y-4">
+        <div id="step-review" class="hidden space-y-4 animate-in slide-in-from-bottom duration-500">
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-[10px] font-black text-slate-400 uppercase">姓名</label>
-              <input type="text" id="res-name" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold">
-            </div>
-            <div>
-              <label class="text-[10px] font-black text-slate-400 uppercase">電話</label>
-              <input type="text" id="res-phone" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold">
-            </div>
+            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">姓名</label><input type="text" id="res-name" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
+            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">電話</label><input type="text" id="res-phone" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
           </div>
-          <div><label class="text-[10px] font-black text-slate-400 uppercase">公司</label><input type="text" id="res-company" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"></div>
-          <div><label class="text-[10px] font-black text-slate-400 uppercase">職稱</label><input type="text" id="res-title" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"></div>
-          <div><label class="text-[10px] font-black text-slate-400 uppercase">Email</label><input type="text" id="res-email" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"></div>
-          <div><label class="text-[10px] font-black text-slate-400 uppercase">地址</label><textarea id="res-address" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold h-20"></textarea></div>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">公司</label><input type="text" id="res-company" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">職稱</label><input type="text" id="res-title" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">Email</label><input type="text" id="res-email" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">地址</label><textarea id="res-address" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold h-20 resize-none"></textarea></div>
+          <button onclick="saveCard()" class="w-full bg-blue-600 text-white p-5 rounded-3xl font-black text-lg shadow-xl shadow-blue-100">建立數位名片存檔</button>
         </div>
-        <button onclick="saveCard()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black text-lg shadow-xl shadow-blue-200">確認數據並存檔</button>
       </div>
+
+      <!-- 頁面：V3 編輯器預留 -->
+      <div id="page-editor" class="page-node p-6">
+        <div class="bg-slate-50 p-8 rounded-[2rem] border-2 border-dashed border-slate-200 text-center space-y-4">
+          <div class="text-5xl">🎨</div>
+          <h3 class="font-black text-slate-800">V3 內容編輯中心</h3>
+          <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Mobile View Integrated</p>
+          <button onclick="showPage('home')" class="bg-white px-8 py-3 rounded-full text-xs font-black shadow-sm border border-slate-200">返回導覽中心</button>
+        </div>
+      </div>
+
     </main>
 
-    <div id="loading" class="hidden fixed inset-0 z-[100] bg-white/95 flex flex-col items-center justify-center p-10 text-center">
-      <div class="loader rounded-full border-4 border-t-4 border-slate-200 h-16 w-16 mb-4"></div>
-      <h3 class="text-lg font-black text-slate-800" id="loading-text">處理中...</h3>
+    <!-- 裁切視窗 -->
+    <div id="step-crop" class="hidden fixed inset-0 z-50 bg-black flex flex-col">
+      <div class="p-4 flex justify-between items-center bg-black/50 text-white border-b border-white/10">
+        <button onclick="cancelCrop()" class="px-4 py-2 font-bold text-sm">取消</button>
+        <span class="font-black text-sm tracking-widest uppercase">調整裁切範圍</span>
+        <button onclick="confirmCrop()" class="px-6 py-2 bg-blue-600 rounded-full font-bold text-sm shadow-lg">確認</button>
+      </div>
+      <div class="flex-1 relative flex items-center justify-center overflow-hidden"><img id="cropTarget" class="max-w-full"></div>
     </div>
+
+    <!-- 載入中遮罩 -->
+    <div id="loading" class="hidden fixed inset-0 z-[100] bg-white/95 backdrop-blur flex flex-col items-center justify-center p-12 text-center">
+      <div class="loader rounded-full border-4 border-t-4 border-slate-100 h-16 w-16 mb-6"></div>
+      <h3 class="text-lg font-black text-slate-800" id="loading-text">處理中...</h3>
+      <p class="text-xs text-slate-400 font-bold mt-2 tracking-widest uppercase">AI Engine Processing</p>
+    </div>
+
   </div>
 
   <script>
-    // --- 這裡現在只需要填寫 Worker 網址 ---
     const CONFIG = {
+      LIFF_ID: "2009367829-zVxIwsKl", // 已使用您截圖中的 LIFF ID
       WORKER_URL: "https://super-snow-506c.ares-co2026.workers.dev/",
       LICENSE_KEY: "ARES-PRO-2024-KEY"
     };
 
+    let currentEmpName = "系統管理員";
     let cropper = null;
     let croppedBase64 = null;
 
+    // --- LIFF 初始化 ---
+    async function initLiff() {
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const profile = await liff.getProfile();
+          currentEmpName = profile.displayName;
+          document.getElementById('welcome-name').innerText = currentEmpName;
+          document.getElementById('status-dot').className = "w-1.5 h-1.5 rounded-full bg-green-500";
+          document.getElementById('status-text').innerText = "業務員：" + currentEmpName;
+          document.getElementById('user-avatar').classList.remove('hidden');
+          document.getElementById('avatar-img').src = profile.pictureUrl;
+        }
+      } catch (err) {
+        document.getElementById('status-text').innerText = "外部環境執行中";
+      }
+    }
+
+    // --- 路由切換 ---
+    function showPage(pageId) {
+      document.querySelectorAll('.page-node').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + pageId).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    // --- 掃描功能 ---
     function handleFile(input) {
       if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-          document.getElementById('cropTarget').src = e.target.result;
+          const img = document.getElementById('cropTarget');
+          img.src = e.target.result;
           document.getElementById('step-crop').classList.remove('hidden');
-          initCropper();
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(img, { aspectRatio: 1.58 / 1, viewMode: 1 });
         };
         reader.readAsDataURL(input.files[0]);
       }
     }
 
-    function initCropper() {
-      if (cropper) cropper.destroy();
-      const image = document.getElementById('cropTarget');
-      cropper = new Cropper(image, { aspectRatio: 1.58 / 1, viewMode: 1 });
-    }
-
     function cancelCrop() { document.getElementById('step-crop').classList.add('hidden'); }
 
     function confirmCrop() {
-      const canvas = cropper.getCroppedCanvas({ width: 800 });
-      croppedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      croppedBase64 = cropper.getCroppedCanvas({ width: 800 }).toDataURL('image/jpeg', 0.85);
       document.getElementById('step-crop').classList.add('hidden');
       processWithAI();
     }
 
-    // AI 辨識請求 (發給 Worker)
     async function processWithAI() {
-      showLoading("AI 正在辨識中...");
+      showLoading("AI 正在辨識...");
       try {
         const response = await fetch(CONFIG.WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            licenseKey: CONFIG.LICENSE_KEY,
-            action: "analyze",
-            image: croppedBase64.split(',')[1]
+          body: JSON.stringify({ 
+            licenseKey: CONFIG.LICENSE_KEY, 
+            action: "analyze", 
+            image: croppedBase64.split(',')[1] 
           })
         });
-        const result = await response.json();
+        const r = await response.json();
         hideLoading();
-        if (result.success) {
-          fillData(result.data);
+        if (r.success) {
+          const d = r.data;
+          document.getElementById('res-name').value = d.name || '';
+          document.getElementById('res-phone').value = d.phone || '';
+          document.getElementById('res-company').value = d.company || '';
+          document.getElementById('res-title').value = d.title || '';
+          document.getElementById('res-email').value = d.email || '';
+          document.getElementById('res-address').value = d.address || '';
           document.getElementById('step-capture').classList.add('hidden');
           document.getElementById('step-review').classList.remove('hidden');
         } else {
-          alert("辨識失敗：" + (result.error || "未知錯誤"));
+          alert("辨識錯誤：" + (r.error || "未知錯誤"));
         }
-      } catch (err) {
-        hideLoading();
-        alert("連線 AI 伺服器失敗");
-      }
+      } catch (err) { hideLoading(); alert("辨識過程發生異常，請檢查網路。"); }
     }
 
-    function fillData(d) {
-      document.getElementById('res-name').value = d.name || '';
-      document.getElementById('res-company').value = d.company || '';
-      document.getElementById('res-title').value = d.title || '';
-      document.getElementById('res-phone').value = d.phone || '';
-      document.getElementById('res-email').value = d.email || '';
-      document.getElementById('res-address').value = d.address || '';
-    }
-
-    // 儲存數據請求 (統一發給 Worker 中轉)
     async function saveCard() {
       const cardData = {
         name: document.getElementById('res-name').value,
@@ -157,34 +226,33 @@
         address: document.getElementById('res-address').value,
         imgBase64: croppedBase64
       };
-      showLoading("同步至戰情總表...");
+      showLoading("正在儲存資料...");
       try {
         const response = await fetch(CONFIG.WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            licenseKey: CONFIG.LICENSE_KEY,
-            action: "save",
-            data: cardData
+          body: JSON.stringify({ 
+            licenseKey: CONFIG.LICENSE_KEY, 
+            action: "save", 
+            empName: currentEmpName, 
+            data: cardData 
           })
         });
-        const result = await response.json();
+        const r = await response.json();
         hideLoading();
-        if (result.success) {
-          alert("✅ 資料已成功入庫！");
+        if (r.success) {
+          alert("✅ 資料已成功存入 " + currentEmpName + " 的資料庫！");
           location.reload();
         } else {
-          alert("儲存失敗：" + result.error);
+          alert("儲存失敗：" + r.error);
         }
-      } catch (err) {
-        hideLoading();
-        alert("資料已發送，請至 Google Sheet 確認。");
-        location.reload();
-      }
+      } catch (err) { hideLoading(); alert("存檔連線異常，請確認 GAS 狀態。"); }
     }
 
     function showLoading(t) { document.getElementById('loading-text').innerText = t; document.getElementById('loading').classList.remove('hidden'); }
     function hideLoading() { document.getElementById('loading').classList.add('hidden'); }
+
+    window.onload = initLiff;
   </script>
 </body>
 </html>
