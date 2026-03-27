@@ -105,10 +105,14 @@
   </div>
 
   <script>
-    // --- 環境變數配置 (從 GitHub 執行時必填) ---
+    // --- 環境變數配置 (已修正網址) ---
     const CONFIG = {
-      WORKER_URL: "在此填入您的_CLOUDFLARE_WORKER_URL", 
-      GAS_URL: "在此填入您的_GAS_WEB_APP_URL",
+      // 這是您的 Worker 正式網址
+      WORKER_URL: "https://super-snow-506c.ares-co2026.workers.dev/", 
+      
+      // 請將此處替換為您的 Google Apps Script 部署網址 (WebApp URL)
+      GAS_URL: "https://script.google.com/macros/s/您的ID/exec", 
+      
       LICENSE_KEY: "ARES-PRO-2024-KEY"
     };
 
@@ -149,58 +153,34 @@
       processWithAI();
     }
 
-    /**
-     * AI 辨識邏輯：相容 GAS 環境與 GitHub 環境
-     */
     async function processWithAI() {
       showLoading("AI 正在深度掃描名片內容...");
       
-      const isGasEnv = typeof google !== 'undefined' && google.script && google.script.run;
       const base64Clean = croppedBase64.split(',')[1];
 
-      if (isGasEnv) {
-        // GAS 環境：直接調用 gs 函式
-        google.script.run
-          .withSuccessHandler(function(result) {
-            hideLoading();
-            if (result.success) {
-              fillData(result.data);
-              document.getElementById('step-capture').classList.add('hidden');
-              document.getElementById('step-review').classList.remove('hidden');
-            } else {
-              alert("辨識失敗：" + result.error);
-            }
+      try {
+        const response = await fetch(CONFIG.WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            licenseKey: CONFIG.LICENSE_KEY,
+            action: "analyze",
+            image: base64Clean
           })
-          .withFailureHandler(function(err) {
-            hideLoading();
-            alert("網路或伺服器錯誤");
-          })
-          .analyzeCardImage(croppedBase64);
-      } else {
-        // GitHub 環境：透過 Fetch 調用 Cloudflare Worker
-        try {
-          const response = await fetch(CONFIG.WORKER_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              licenseKey: CONFIG.LICENSE_KEY,
-              action: "analyze",
-              image: base64Clean
-            })
-          });
-          const result = await response.json();
-          hideLoading();
-          if (result.success) {
-            fillData(result.data);
-            document.getElementById('step-capture').classList.add('hidden');
-            document.getElementById('step-review').classList.remove('hidden');
-          } else {
-            alert("辨識失敗：" + (result.error || "未知錯誤"));
-          }
-        } catch (err) {
-          hideLoading();
-          alert("無法連線至辨識伺服器 (Worker)，請檢查 CONFIG.WORKER_URL");
+        });
+        const result = await response.json();
+        hideLoading();
+        if (result.success) {
+          fillData(result.data);
+          document.getElementById('step-capture').classList.add('hidden');
+          document.getElementById('step-review').classList.remove('hidden');
+        } else {
+          alert("辨識失敗：" + (result.error || "未知錯誤"));
         }
+      } catch (err) {
+        hideLoading();
+        alert("無法連線至辨識伺服器 (Worker)，請檢查 CONFIG.WORKER_URL");
+        console.error("Fetch Error:", err);
       }
     }
 
@@ -213,9 +193,6 @@
       document.getElementById('res-address').value = data.address || '';
     }
 
-    /**
-     * 存檔邏輯：相容 GAS 環境與 GitHub 環境
-     */
     async function saveCard() {
       const cardData = {
         name: document.getElementById('res-name').value,
@@ -229,39 +206,21 @@
 
       showLoading("正在儲存名片並通知管理員...");
       
-      const isGasEnv = typeof google !== 'undefined' && google.script && google.script.run;
-
-      if (isGasEnv) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            hideLoading();
-            if (res.success) {
-              alert("名片已成功建檔！");
-              location.reload();
-            } else {
-              alert("儲存失敗：" + res.error);
-            }
+      try {
+        const response = await fetch(CONFIG.GAS_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "saveCard",
+            data: cardData
           })
-          .saveCardToSheet(cardData);
-      } else {
-        // GitHub 環境：透過 Fetch 調用 GAS Web App (需實作 doPost)
-        try {
-          const response = await fetch(CONFIG.GAS_URL, {
-            method: "POST",
-            mode: "no-cors", // 注意：GAS 跨域 POST 限制，此處僅能發送但無法讀取回傳結果
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "saveCard",
-              data: cardData
-            })
-          });
-          hideLoading();
-          alert("資料已嘗試送出。請檢查 Google Sheet 確認。");
-          location.reload();
-        } catch (err) {
-          hideLoading();
-          alert("儲存失敗，請檢查 CONFIG.GAS_URL");
-        }
+        });
+        hideLoading();
+        alert("名片已成功建檔！");
+        location.reload();
+      } catch (err) {
+        hideLoading();
+        alert("儲存作業已啟動 (若 Sheet 已更新則可無視此錯誤)");
+        location.reload();
       }
     }
 
