@@ -39,11 +39,6 @@
     .form-pane { background: #fff; border: 1px solid var(--line-border); border-radius: 16px; padding: 30px; overflow-y: auto; }
     .mock-bubble { border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; background: #fff; }
 
-    /* 輸入框 */
-    input, textarea { border: 1px solid #D1D5DB; border-radius: 6px; padding: 10px 14px; font-size: 14px; width: 100%; transition: 0.2s; }
-    input:focus { border-color: var(--line-green); outline: none; box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.1); }
-    label { font-size: 11px; font-weight: 900; color: #64748B; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
-
     #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 12px 30px; border-radius: 50px; font-size: 13px; z-index: 2000; display: none; }
     
     /* 前台純淨模式 */
@@ -102,29 +97,25 @@
         <h3 class="text-2xl font-bold text-gray-800 tracking-tight">您好，<span id="welcome-name" class="text-green-600">Tonyfang</span></h3>
         <p class="text-gray-400 text-sm mt-1">管理權限：全域管理員 | 雲端相片庫連線成功</p>
       </div>
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white p-8 border border-gray-200 rounded-2xl shadow-sm">
           <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">當月名片採集</p>
           <h4 class="text-5xl font-black text-gray-800 mt-2">382</h4>
-          <p class="text-xs text-green-500 font-bold mt-4">↑ 12% vs Last Month</p>
         </div>
         <div onclick="showPage('scanner')" class="bg-white p-8 border border-gray-200 rounded-2xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
           <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">📸</div>
           <h5 class="font-bold text-gray-800">開始掃描名片</h5>
-          <p class="text-xs text-gray-400 mt-1">GPT-4o 辨識歸屬</p>
         </div>
         <div onclick="showPage('editor')" class="bg-white p-8 border border-gray-200 rounded-2xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
           <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎨</div>
           <h5 class="font-bold text-gray-800">編輯 V3 戰報</h5>
-          <p class="text-xs text-gray-400 mt-1">發布 Flex Message</p>
         </div>
       </div>
     </div>
 
     <!-- User Preview (前台) -->
     <div id="page-user-preview" class="page-node max-w-[380px] mx-auto pt-10">
-        <div class="mock-bubble overflow-hidden mx-auto border-0">
+        <div class="mock-bubble overflow-hidden mx-auto border-0 shadow-2xl">
             <img id="v3-user-hero" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="w-full aspect-[12/5] object-cover bg-gray-100">
             <div id="v3-user-body" class="bg-white"></div>
         </div>
@@ -142,12 +133,12 @@
           <p class="text-sm font-black text-gray-500 mt-4 uppercase">拍照或上傳名片</p>
         </div>
       </div>
-      <div id="step-review" class="hidden bg-white p-8 border border-gray-200 rounded-3xl shadow-sm space-y-5 animate-in slide-in-from-bottom duration-500">
+      <div id="step-review" class="hidden bg-white p-8 border border-gray-200 rounded-3xl shadow-sm space-y-5">
         <div class="grid grid-cols-2 gap-4">
-          <div><label>姓名</label><input type="text" id="res-name"></div>
-          <div><label>電話</label><input type="text" id="res-phone"></div>
+          <div><label class="text-xs font-bold text-gray-500">姓名</label><input type="text" id="res-name" class="w-full border p-3 rounded-lg"></div>
+          <div><label class="text-xs font-bold text-gray-500">電話</label><input type="text" id="res-phone" class="w-full border p-3 rounded-lg"></div>
         </div>
-        <div><label>公司名稱</label><input type="text" id="res-company"></div>
+        <div><label class="text-xs font-bold text-gray-500">公司</label><input type="text" id="res-company" class="w-full border p-3 rounded-lg"></div>
         <button id="save-card-btn" onclick="saveCard()" class="w-full bg-[#06C755] text-white py-4 rounded-xl font-black text-lg">確認入庫</button>
       </div>
     </div>
@@ -159,6 +150,7 @@
           <h2 class="text-2xl font-black text-gray-800">V3 戰報模板編輯器</h2>
           <p class="text-xs text-gray-400 font-bold mt-1 uppercase tracking-widest">Image Storage: Google Drive Linked</p>
         </div>
+        <!-- 發布按鈕 -->
         <button id="publish-v3-btn" onclick="saveV3Content()" class="bg-[#06C755] text-white px-10 py-3 rounded-lg font-black shadow-lg">發布變更</button>
       </div>
 
@@ -171,27 +163,36 @@
             <div id="v3-mock-body" class="bg-white"></div>
           </div>
         </div>
+
         <!-- 編輯表單 -->
         <div class="form-pane no-scrollbar">
-          <div class="bg-gray-50 p-6 rounded-xl border mb-8 space-y-6">
-            <h4 class="font-black text-gray-700">1. 品牌主視覺</h4>
+          <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8 space-y-6">
+            <h4 class="font-black text-gray-700 text-lg">1. 品牌主視覺</h4>
             <div>
-              <label>頂部主圖 URL</label>
+              <label class="text-xs font-bold text-gray-600 mb-2 block">頂部主圖 URL</label>
               <div class="flex gap-2">
-                <input type="text" id="v3-hero-url" placeholder="網址或上傳..." oninput="renderV3()">
-                <button onclick="document.getElementById('hero-file').click()" class="bg-gray-200 px-4 rounded font-black text-[10px] shrink-0 uppercase">Upload</button>
+                <input type="text" id="v3-hero-url" placeholder="網址或上傳..." class="w-full border p-2 rounded-lg text-sm" oninput="renderV3()">
+                <button onclick="document.getElementById('hero-file').click()" class="bg-gray-200 px-4 rounded-lg font-black text-xs shrink-0 uppercase text-gray-700">📸 上傳</button>
                 <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
-              <div><label>主題顏色</label><input type="color" id="v3-theme-color" value="#E91E63" class="h-12 p-1 cursor-pointer" oninput="renderV3()"></div>
-              <div><label>文字顏色</label><input type="color" id="v3-text-color" value="#ffffff" class="h-12 p-1 cursor-pointer" oninput="renderV3()"></div>
+              <div>
+                <label class="text-xs font-bold text-gray-600 mb-2 block">主題顏色</label>
+                <input type="color" id="v3-theme-color" value="#0056b3" class="w-full h-12 p-1 cursor-pointer border rounded-lg" oninput="renderV3()">
+              </div>
+              <div>
+                <label class="text-xs font-bold text-gray-600 mb-2 block">文字顏色</label>
+                <input type="color" id="v3-text-color" value="#ffffff" class="w-full h-12 p-1 cursor-pointer border rounded-lg" oninput="renderV3()">
+              </div>
             </div>
           </div>
+
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-black text-gray-700">2. 內容清單</h4>
-            <button onclick="addV3Item()" class="text-[#06C755] text-xs font-black border-2 border-[#06C755] px-4 py-1 rounded-full">+ 新增</button>
+            <h4 class="font-black text-gray-700 text-lg">2. 內容清單</h4>
+            <button onclick="addV3Item()" class="text-[#06C755] text-xs font-black border-2 border-[#06C755] px-4 py-2 rounded-full hover:bg-[#06C755] hover:text-white transition-all">+ 新增欄位</button>
           </div>
+          <!-- 項目列表容器 -->
           <div id="v3-items-list" class="space-y-4"></div>
         </div>
       </div>
@@ -210,12 +211,13 @@
 
   <!-- Overlay -->
   <div id="loading" class="hidden fixed inset-0 z-[100] bg-white/90 flex flex-col items-center justify-center">
-    <div class="w-12 h-12 border-4 border-t-green-500 rounded-full animate-spin"></div>
-    <p id="loading-text" class="mt-4 font-black">處理中...</p>
+    <div class="w-12 h-12 border-4 border-t-[#06C755] rounded-full animate-spin"></div>
+    <p id="loading-text" class="mt-4 font-black text-gray-700">處理中...</p>
   </div>
   <div id="toast"></div>
 
   <script>
+    // --- 變數設定 ---
     const CONFIG = {
       LIFF_ID: "2009367829-zVxIwsKl",
       WORKER_URL: "https://super-snow-506c.ares-co2026.workers.dev/",
@@ -224,9 +226,19 @@
     };
 
     let currentEmpName = "Tonyfang", isPreviewMode = false, croppedBase64 = null;
-    let v3Items = [{ title: "範例戰報項目", data: "news_01", img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", btn: "查看", link: "" }];
+    
+    // V3 預設資料
+    let v3Items = [
+      { 
+        title: "【最新認證】2024 年度 ISO 27001 資安轉版...", 
+        data: "news_01", 
+        img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", 
+        btn: "查看", 
+        link: "https://it-ares.com" 
+      }
+    ];
 
-    // --- 初始化 ---
+    // --- 系統初始化 ---
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -239,11 +251,15 @@
           document.getElementById('pc-avatar').src = p.pictureUrl;
           document.getElementById('mobile-avatar').src = p.pictureUrl;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn("Liff 尚未載入");
+      }
       renderV3();
     }
 
+    // --- 畫面控制 ---
     function toggleViewMode() { isPreviewMode = !isPreviewMode; applyViewMode(); }
+    
     function applyViewMode() {
       document.body.classList.toggle('is-preview', isPreviewMode);
       showPage(isPreviewMode ? 'user-preview' : 'home');
@@ -260,7 +276,24 @@
       if (pId === 'user-preview') syncUserPreview();
     }
 
-    // --- V3 編輯核心 ---
+    // --- UI 輔助功能 ---
+    function showLoading(t) { 
+      document.getElementById('loading-text').innerText = t; 
+      document.getElementById('loading').classList.remove('hidden'); 
+    }
+    
+    function hideLoading() { 
+      document.getElementById('loading').classList.add('hidden'); 
+    }
+    
+    function showToast(m) { 
+      const t = document.getElementById('toast'); 
+      t.innerText = m; 
+      t.style.display = 'block'; 
+      setTimeout(() => t.style.display='none', 3000); 
+    }
+
+    // --- V3 編輯器核心邏輯 ---
     function renderV3() {
       const container = document.getElementById('v3-items-list');
       const mockBody = document.getElementById('v3-mock-body');
@@ -268,30 +301,46 @@
       const tCol = document.getElementById('v3-text-color').value;
       const hero = document.getElementById('v3-hero-url').value;
       
-      if(hero && (hero.startsWith('http') || hero.startsWith('data:'))) {
-        document.getElementById('v3-mock-hero').src = hero;
-      }
+      if(hero) document.getElementById('v3-mock-hero').src = hero;
       
-      container.innerHTML = ''; mockBody.innerHTML = '';
+      container.innerHTML = ''; 
+      mockBody.innerHTML = '';
+
       v3Items.forEach((item, idx) => {
+        // 1. 產生編輯卡片 (修復了欄位缺失問題)
         const div = document.createElement('div');
-        div.className = "bg-gray-50 border rounded-xl p-4 relative flex gap-4";
+        div.className = "bg-white border border-gray-200 rounded-xl p-5 flex gap-5 relative shadow-sm";
         div.innerHTML = `
-          <div class="w-20 h-20 bg-white border rounded relative overflow-hidden shrink-0 group">
+          <div class="w-24 h-24 bg-gray-100 border border-gray-300 rounded-lg relative overflow-hidden shrink-0 group cursor-pointer" onclick="document.getElementById('file-${idx}').click()">
             <img src="${item.img}" class="w-full h-full object-cover">
-            <div onclick="document.getElementById('f-${idx}').click()" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer text-[10px] text-white font-bold uppercase">Upload</div>
-            <input type="file" id="f-${idx}" class="hidden" accept="image/*" onchange="handleV3Upload(this, ${idx})">
+            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <span class="text-xs text-white font-bold tracking-widest">更換</span>
+            </div>
+            <input type="file" id="file-${idx}" class="hidden" accept="image/*" onchange="handleV3Upload(this, ${idx})">
           </div>
-          <div class="flex-1 space-y-2">
-            <input type="text" value="${item.title}" class="font-bold text-sm" oninput="v3Items[${idx}].title=this.value;renderV3()">
-            <div class="grid grid-cols-2 gap-2"><input type="text" value="${item.data}" placeholder="ID" class="text-[10px]" oninput="v3Items[${idx}].data=this.value;renderV3()"><input type="text" value="${item.btn}" class="text-[10px]" oninput="v3Items[${idx}].btn=this.value;renderV3()"></div>
+          <div class="flex-1 flex flex-col gap-3">
+            <input type="text" value="${item.title}" placeholder="資訊標題..." class="font-bold text-sm w-full border border-gray-300 rounded-md p-2" oninput="v3Items[${idx}].title=this.value;renderV3()">
+            <input type="text" value="${item.link}" placeholder="點擊連結網址 (https://...)" class="text-xs font-mono text-blue-600 w-full border border-gray-300 rounded-md p-2" oninput="v3Items[${idx}].link=this.value;renderV3()">
+            <div class="grid grid-cols-2 gap-3">
+              <input type="text" value="${item.data}" placeholder="追蹤 ID" class="text-xs border border-gray-300 rounded-md p-2 bg-gray-50" oninput="v3Items[${idx}].data=this.value;renderV3()">
+              <input type="text" value="${item.btn}" placeholder="按鈕文字" class="text-xs font-bold border border-gray-300 rounded-md p-2" oninput="v3Items[${idx}].btn=this.value;renderV3()">
+            </div>
           </div>
-          <button onclick="v3Items.splice(${idx},1);renderV3()" class="text-gray-300">✕</button>`;
+          <button onclick="v3Items.splice(${idx},1);renderV3()" class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 shadow-md transition-colors">✕</button>
+        `;
         container.appendChild(div);
         
+        // 2. 產生模擬器畫面
         const mDiv = document.createElement('div');
         mDiv.className = "flex items-center gap-4 p-4 border-b border-gray-50";
-        mDiv.innerHTML = `<img src="${item.img}" class="w-14 h-14 rounded-lg object-cover"><div class="flex-1 overflow-hidden"><p class="text-[12px] font-bold truncate">${item.title}</p><p class="text-[9px] text-green-500 font-black mt-1 uppercase">Recommended</p></div><div style="background:${theme}; color:${tCol}" class="w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">${item.btn}</div>`;
+        mDiv.innerHTML = `
+          <img src="${item.img}" class="w-16 h-16 rounded-lg object-cover border border-gray-100">
+          <div class="flex-1 overflow-hidden">
+            <p class="text-[13px] font-bold text-gray-800 line-clamp-2 leading-tight">${item.title}</p>
+            <p class="text-[10px] text-[#06C755] font-black mt-1 uppercase tracking-wider">RECOMMENDED</p>
+          </div>
+          <div style="background:${theme}; color:${tCol}" class="w-12 h-12 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn}</div>
+        `;
         mockBody.appendChild(mDiv);
       });
     }
@@ -305,21 +354,41 @@
       v3Items.forEach(item => {
         const d = document.createElement('div');
         d.className = "flex items-center gap-4 p-4 border-b border-gray-50";
-        d.innerHTML = `<img src="${item.img}" class="w-16 h-16 rounded-lg object-cover"><div class="flex-1 overflow-hidden"><p class="text-[14px] font-bold line-clamp-2">${item.title}</p><p class="text-[10px] text-green-500 font-black mt-1 uppercase">Recommended</p></div><div style="background:${theme}; color:${tCol}" class="w-11 h-11 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn}</div>`;
+        d.innerHTML = `
+          <img src="${item.img}" class="w-16 h-16 rounded-lg object-cover border border-gray-100">
+          <div class="flex-1 overflow-hidden">
+            <p class="text-[14px] font-bold text-gray-800 line-clamp-2 leading-tight">${item.title}</p>
+            <p class="text-[10px] text-[#06C755] font-black mt-1 uppercase tracking-wider">RECOMMENDED</p>
+          </div>
+          <div style="background:${theme}; color:${tCol}" class="w-12 h-12 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn}</div>
+        `;
         body.appendChild(d);
       });
     }
 
-    // --- 圖片上傳 (雷區 1 規避) ---
+    function addV3Item() { 
+      v3Items.push({ 
+        title: "請輸入資訊標題...", 
+        data: "item_" + Date.now(), 
+        img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", 
+        btn: "查看", 
+        link: "https://" 
+      }); 
+      renderV3(); 
+    }
+
+    // --- 圖片上傳與 Google Drive 同步 (防呆機制) ---
     async function handleV3Upload(input, target) {
       if (!input.files || !input.files[0]) return;
-      showLoading("影像壓縮與同步中...");
+      showLoading("圖片壓縮與雲端傳輸中...");
+      
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
         img.onload = async function() {
+          // 使用 Canvas 強制壓縮 (手冊規範: 最大寬度 800px, 品質 0.7)
           const canvas = document.createElement('canvas');
-          const maxW = 800; // 手冊建議
+          const maxW = 800; 
           let w = img.width, h = img.height;
           if (w > maxW) { h = (maxW / w) * h; w = maxW; }
           canvas.width = w; canvas.height = h;
@@ -327,6 +396,7 @@
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
 
           try {
+            // 發送給 Cloudflare Worker 轉傳 GAS
             const response = await fetch(CONFIG.WORKER_URL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -337,26 +407,33 @@
                 image: compressedBase64.split(',')[1]
               })
             });
+            
             const res = await response.json();
+            
             if (res.success) {
               if (target === 'hero') document.getElementById('v3-hero-url').value = res.url;
               else v3Items[target].img = res.url;
-              showToast("✅ 已存至雲端相片庫");
-            } else throw new Error(res.error);
+              showToast("✅ 圖片已成功存入 Google Drive");
+            } else {
+              throw new Error(res.error || "GAS 或 Worker 發生錯誤");
+            }
           } catch (err) {
-            // 雷區 4 容錯：雲端失敗則採 Base64 縮圖暫存
+            console.error("Upload Error:", err);
+            // 容錯機制：如果 GAS 沒更新或失敗，直接將壓縮後的圖片轉 Base64 顯示
             if (target === 'hero') document.getElementById('v3-hero-url').value = compressedBase64;
             else v3Items[target].img = compressedBase64;
-            showToast("⚠️ 已轉 Base64 暫存模式");
+            showToast("⚠️ 上傳 Drive 失敗，改用暫存模式。請確認 GAS 已發布為新版本！");
           }
-          hideLoading(); renderV3();
+          
+          hideLoading(); 
+          renderV3();
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(input.files[0]);
     }
 
-    // --- 發布與保存 ---
+    // --- 發布配置到 GAS (修復 ReferenceError) ---
     async function saveV3Content() {
       const data = { 
         hero: document.getElementById('v3-hero-url').value, 
@@ -364,26 +441,102 @@
         text: document.getElementById('v3-text-color').value, 
         items: v3Items 
       };
+      
       showLoading("同步至 OA 戰情室...");
+      
       try {
         const res = await fetch(CONFIG.WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "saveV3", empName: currentEmpName, data: data })
+          body: JSON.stringify({ 
+            licenseKey: CONFIG.LICENSE_KEY, 
+            action: "saveV3", 
+            empName: currentEmpName, 
+            data: data 
+          })
         });
         const r = await res.json();
         hideLoading();
-        if (r.success) { showToast("✅ 戰報發布成功"); showPage('home'); }
-      } catch (e) { hideLoading(); showToast("連線異常"); }
+        if (r.success) { 
+          showToast("✅ 戰報發布成功！"); 
+          showPage('home'); 
+        } else {
+          showToast("❌ 發布失敗：" + r.error);
+        }
+      } catch (e) { 
+        hideLoading(); 
+        showToast("連線異常，請檢查網路。"); 
+      }
     }
 
-    function addV3Item() { v3Items.push({ title: "新資訊項目", data: "news", img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", btn: "查看", link: "" }); renderV3(); }
-    function showLoading(t) { document.getElementById('loading-text').innerText = t; document.getElementById('loading').classList.remove('hidden'); }
-    function hideLoading() { document.getElementById('loading').classList.add('hidden'); }
-    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display='none', 3000); }
-    function handleFile(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = (e) => { croppedBase64 = e.target.result; processWithAI(); }; r.readAsDataURL(input.files[0]); } }
-    async function processWithAI() { showLoading("GPT-4o 辨識中..."); try { const res = await fetch(CONFIG.WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "analyze", image: croppedBase64.split(',')[1] }) }); const r = await res.json(); hideLoading(); if (r.success) { const d = r.data; document.getElementById('res-name').value = d.name; document.getElementById('step-capture').classList.add('hidden'); document.getElementById('step-review').classList.remove('hidden'); } } catch (e) { hideLoading(); showToast("失敗"); } }
-    async function saveCard() { const data = { name: document.getElementById('res-name').value, company: document.getElementById('res-company').value, title: "", phone: document.getElementById('res-phone').value, email: "", address: "", imgBase64: croppedBase64 }; showLoading("歸屬同步中..."); try { await fetch(CONFIG.WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "save", empName: currentEmpName, data: data }) }); hideLoading(); showToast("✅ 資料入庫成功"); location.reload(); } catch (e) { hideLoading(); showToast("失敗"); } }
+    // --- 掃描功能 ---
+    function handleFile(input) { 
+      if (input.files && input.files[0]) { 
+        const r = new FileReader(); 
+        r.onload = (e) => { 
+          croppedBase64 = e.target.result; 
+          processWithAI(); 
+        }; 
+        r.readAsDataURL(input.files[0]); 
+      } 
+    }
+
+    async function processWithAI() { 
+      showLoading("GPT-4o 辨識中..."); 
+      try { 
+        const res = await fetch(CONFIG.WORKER_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify({ 
+            licenseKey: CONFIG.LICENSE_KEY, 
+            action: "analyze", 
+            image: croppedBase64.split(',')[1] 
+          }) 
+        }); 
+        const r = await res.json(); 
+        hideLoading(); 
+        if (r.success) { 
+          const d = r.data; 
+          document.getElementById('res-name').value = d.name; 
+          document.getElementById('step-capture').classList.add('hidden'); 
+          document.getElementById('step-review').classList.remove('hidden'); 
+        } 
+      } catch (e) { 
+        hideLoading(); 
+        showToast("辨識失敗"); 
+      } 
+    }
+
+    async function saveCard() { 
+      const data = { 
+        name: document.getElementById('res-name').value, 
+        company: document.getElementById('res-company').value, 
+        title: "", 
+        phone: document.getElementById('res-phone').value, 
+        email: "", 
+        address: "", 
+        imgBase64: croppedBase64 
+      }; 
+      showLoading("歸屬同步中..."); 
+      try { 
+        await fetch(CONFIG.WORKER_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify({ 
+            licenseKey: CONFIG.LICENSE_KEY, 
+            action: "save", 
+            empName: currentEmpName, 
+            data: data 
+          }) 
+        }); 
+        hideLoading(); 
+        showToast("✅ 資料入庫成功"); 
+        location.reload(); 
+      } catch (e) { 
+        hideLoading(); 
+        showToast("失敗"); 
+      } 
+    }
 
     window.onload = initLiff;
   </script>
