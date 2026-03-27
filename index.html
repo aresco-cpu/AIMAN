@@ -15,19 +15,25 @@
     @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .page-node { display: none; }
     .page-node.active { display: block; }
+    .admin-glow { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 8px; }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900 overflow-x-hidden">
 
   <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col bg-white shadow-2xl relative">
     
-    <!-- 全局標頭 (包含 LIFF 識別) -->
+    <!-- 全局標頭 -->
     <header class="p-6 border-b bg-white sticky top-0 z-20 flex justify-between items-center">
       <div onclick="showPage('home')" class="cursor-pointer">
-        <h1 class="text-xl font-black text-slate-800 tracking-tight">ACT-BizCard <span class="text-blue-600">AI</span></h1>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-black text-slate-800 tracking-tight">ACT-BizCard <span class="text-blue-600">AI</span></h1>
+          <span id="admin-badge" class="hidden px-2 py-0.5 bg-amber-100 text-amber-600 text-[9px] font-black rounded-md">ADMIN</span>
+        </div>
         <div id="user-info" class="text-[10px] text-slate-400 font-bold flex items-center gap-1">
           <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> 
-          <span id="status-text">正在識別身分...</span>
+          <span id="status-text">正在辨識權限...</span>
         </div>
       </div>
       <div id="user-avatar" class="w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden hidden">
@@ -37,32 +43,41 @@
 
     <main class="flex-1 overflow-y-auto no-scrollbar pb-10">
       
-      <!-- 頁面：導覽首頁 (v2.1 最新門戶介面) -->
+      <!-- 頁面：導覽首頁 -->
       <div id="page-home" class="page-node active p-6 space-y-6">
-        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+        <div id="hero-card" class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden transition-all duration-500">
           <div class="relative z-10">
-            <h2 class="text-2xl font-black mb-1">您好，<span id="welcome-name">業務夥伴</span></h2>
-            <p class="text-blue-100 text-xs font-bold opacity-80 uppercase tracking-widest">Business Intelligence v2.1</p>
+            <h2 class="text-2xl font-black mb-1 leading-tight">您好，<br><span id="welcome-name" class="text-blue-400">夥伴</span></h2>
+            <p class="text-slate-400 text-xs font-bold opacity-80 uppercase tracking-widest mt-2">智能業務戰情系統 v2.2</p>
           </div>
-          <div class="absolute -right-4 -bottom-4 text-8xl opacity-10">🚀</div>
+          <div class="absolute -right-4 -bottom-4 text-8xl opacity-10 rotate-12">🚀</div>
         </div>
 
         <div class="grid grid-cols-1 gap-4">
-          <!-- AI 掃描入口 -->
-          <button onclick="showPage('scanner')" class="flex items-center gap-6 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-blue-500 transition-all text-left group">
-            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">📸</div>
+          <!-- 功能 1 -->
+          <button onclick="showPage('scanner')" class="flex items-center gap-6 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-blue-500 transition-all text-left group active:scale-95">
+            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-sm">📸</div>
             <div>
               <h3 class="font-black text-slate-800">名片 AI 採集</h3>
-              <p class="text-[11px] text-slate-400 font-bold">GPT-4o 辨識並自動歸屬</p>
+              <p class="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">GPT-4o OCR & Lead Attribution</p>
             </div>
           </button>
 
-          <!-- V3 編輯入口 -->
-          <button onclick="showPage('editor')" class="flex items-center gap-6 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-green-500 transition-all text-left group">
-            <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">🎨</div>
+          <!-- 功能 2 -->
+          <button onclick="showPage('editor')" class="flex items-center gap-6 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-green-500 transition-all text-left group active:scale-95">
+            <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-sm">🎨</div>
             <div>
               <h3 class="font-black text-slate-800">V3 戰報發布</h3>
-              <p class="text-[11px] text-slate-400 font-bold">編輯新聞與課程廣告內容</p>
+              <p class="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">Flex Message Content Manager</p>
+            </div>
+          </button>
+
+          <!-- 隱藏功能：數據中心 (僅 Admin 可見) -->
+          <button id="btn-admin-only" onclick="alert('管理端數據看板建設中')" class="hidden flex items-center gap-6 p-6 bg-blue-600 text-white rounded-3xl transition-all text-left active:scale-95 shadow-lg shadow-blue-100">
+            <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl">📊</div>
+            <div>
+              <h3 class="font-black">全域數據中心</h3>
+              <p class="text-[11px] font-bold opacity-70 uppercase tracking-tighter">Admin Master Dashboard</p>
             </div>
           </button>
         </div>
@@ -75,32 +90,54 @@
             <input type="file" id="cameraInput" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="handleFile(this)">
             <div class="text-center group-hover:scale-110 transition-transform">
               <div class="text-5xl mb-4">📸</div>
-              <p class="text-sm font-black text-slate-500">拍攝名片照片</p>
+              <p class="text-sm font-black text-slate-600 tracking-tight">點擊拍攝名片影像</p>
             </div>
           </div>
-          <button onclick="showPage('home')" class="w-full py-3 text-slate-400 font-bold text-xs text-center uppercase tracking-widest">返回導覽中心</button>
+          <button onclick="showPage('home')" class="w-full py-4 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] text-center">返回導覽首頁</button>
         </div>
 
         <div id="step-review" class="hidden space-y-4 animate-in slide-in-from-bottom duration-500">
           <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">姓名</label><input type="text" id="res-name" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
-            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">電話</label><input type="text" id="res-phone" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
+            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">姓名</label><input type="text" id="res-name" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none"></div>
+            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">電話</label><input type="text" id="res-phone" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none"></div>
           </div>
-          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">公司</label><input type="text" id="res-company" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
-          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">職稱</label><input type="text" id="res-title" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
-          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">Email</label><input type="text" id="res-email" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold"></div>
-          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase">地址</label><textarea id="res-address" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold h-20 resize-none"></textarea></div>
-          <button onclick="saveCard()" class="w-full bg-blue-600 text-white p-5 rounded-3xl font-black text-lg shadow-xl shadow-blue-100">建立數位名片存檔</button>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">公司名稱</label><input type="text" id="res-company" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none"></div>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">職稱</label><input type="text" id="res-title" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none"></div>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">Email</label><input type="text" id="res-email" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none"></div>
+          <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">地址</label><textarea id="res-address" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold h-20 resize-none focus:border-blue-500 outline-none"></textarea></div>
+          <button onclick="saveCard()" class="w-full bg-blue-600 text-white p-5 rounded-3xl font-black text-lg shadow-xl shadow-blue-100 active:scale-95 transition-transform">確認數據並存檔</button>
         </div>
       </div>
 
-      <!-- 頁面：V3 編輯器預留 -->
-      <div id="page-editor" class="page-node p-6">
-        <div class="bg-slate-50 p-8 rounded-[2rem] border-2 border-dashed border-slate-200 text-center space-y-4">
-          <div class="text-5xl">🎨</div>
-          <h3 class="font-black text-slate-800">V3 內容編輯中心</h3>
-          <p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Mobile View Integrated</p>
-          <button onclick="showPage('home')" class="bg-white px-8 py-3 rounded-full text-xs font-black shadow-sm border border-slate-200">返回導覽中心</button>
+      <!-- 頁面：V3 編輯器 (已優化) -->
+      <div id="page-editor" class="page-node p-6 space-y-6">
+        <div class="bg-white p-6 border-2 border-slate-100 rounded-[2rem] space-y-5">
+           <div class="flex items-center justify-between">
+              <h3 class="font-black text-slate-800">品牌視覺設定</h3>
+              <div class="flex gap-2">
+                 <input type="color" id="v3-theme-color" value="#0056b3" class="w-8 h-8 rounded-lg cursor-pointer" onchange="updateV3Preview()">
+                 <input type="color" id="v3-text-color" value="#ffffff" class="w-8 h-8 rounded-lg cursor-pointer" onchange="updateV3Preview()">
+              </div>
+           </div>
+           <div class="space-y-2">
+              <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Hero Image URL</label>
+              <input type="text" id="v3-hero-url" value="https://it-ares.com/wp-content/uploads/2024/05/ares-logo.png" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:border-green-400 outline-none" oninput="updateV3Preview()">
+           </div>
+        </div>
+
+        <div id="v3-items-container" class="space-y-3">
+           <!-- JS 渲染列表 -->
+        </div>
+
+        <button onclick="addV3Item()" class="w-full py-5 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-black text-xs hover:border-green-400 hover:text-green-500 transition-all uppercase tracking-widest">
+          ＋ 新增內容項目
+        </button>
+
+        <div class="pt-6 border-t border-slate-100 space-y-3">
+           <button onclick="saveV3Content()" class="w-full bg-green-600 text-white p-5 rounded-3xl font-black text-lg shadow-xl shadow-green-100 active:scale-95 transition-all">
+             立即發布戰報
+           </button>
+           <button onclick="showPage('home')" class="w-full py-2 text-slate-400 font-bold text-xs uppercase tracking-widest text-center">放棄編輯</button>
         </div>
       </div>
 
@@ -109,9 +146,9 @@
     <!-- 裁切視窗 -->
     <div id="step-crop" class="hidden fixed inset-0 z-50 bg-black flex flex-col">
       <div class="p-4 flex justify-between items-center bg-black/50 text-white border-b border-white/10">
-        <button onclick="cancelCrop()" class="px-4 py-2 font-bold text-sm">取消</button>
-        <span class="font-black text-sm tracking-widest uppercase">調整裁切範圍</span>
-        <button onclick="confirmCrop()" class="px-6 py-2 bg-blue-600 rounded-full font-bold text-sm shadow-lg">確認</button>
+        <button onclick="cancelCrop()" class="px-4 py-2 font-bold text-sm opacity-70">取消</button>
+        <span class="font-black text-sm tracking-widest uppercase">裁切優化</span>
+        <button onclick="confirmCrop()" class="px-6 py-2 bg-blue-600 rounded-full font-bold text-sm">辨識</button>
       </div>
       <div class="flex-1 relative flex items-center justify-center overflow-hidden"><img id="cropTarget" class="max-w-full"></div>
     </div>
@@ -120,23 +157,30 @@
     <div id="loading" class="hidden fixed inset-0 z-[100] bg-white/95 backdrop-blur flex flex-col items-center justify-center p-12 text-center">
       <div class="loader rounded-full border-4 border-t-4 border-slate-100 h-16 w-16 mb-6"></div>
       <h3 class="text-lg font-black text-slate-800" id="loading-text">處理中...</h3>
-      <p class="text-xs text-slate-400 font-bold mt-2 tracking-widest uppercase">AI Engine Processing</p>
+      <p id="loading-sub" class="text-[10px] text-slate-400 font-black mt-2 tracking-widest uppercase">ACT-BIZCARD AI ENGINE</p>
     </div>
 
   </div>
 
   <script>
     const CONFIG = {
-      LIFF_ID: "2009367829-zVxIwsKl", // 已使用您截圖中的 LIFF ID
+      LIFF_ID: "2009367829-zVxIwsKl",
       WORKER_URL: "https://super-snow-506c.ares-co2026.workers.dev/",
-      LICENSE_KEY: "ARES-PRO-2024-KEY"
+      LICENSE_KEY: "ARES-PRO-2024-KEY",
+      ADMIN_UID: "Uf729764dbb5b652a5a90a467320bea29" // 您提供的管理員 UID
     };
 
     let currentEmpName = "系統管理員";
+    let isAdmin = false;
     let cropper = null;
     let croppedBase64 = null;
+    
+    let v3Items = [
+      { title: "【最新認證】2024 轉版工作開始", data: "ares_01", img: "https://images.unsplash.com/photo-1554224155-1696413565d3?w=400" },
+      { title: "【專業課程】碳權實務班報名中", data: "ares_02", img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400" }
+    ];
 
-    // --- LIFF 初始化 ---
+    // --- LIFF 初始化與身分校驗 ---
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -144,23 +188,95 @@
           liff.login();
         } else {
           const profile = await liff.getProfile();
+          const context = liff.getContext();
+          const uid = context.userId || "Unknown";
+          
           currentEmpName = profile.displayName;
+          isAdmin = (uid === CONFIG.ADMIN_UID);
+
+          // UI 反饋
           document.getElementById('welcome-name').innerText = currentEmpName;
           document.getElementById('status-dot').className = "w-1.5 h-1.5 rounded-full bg-green-500";
-          document.getElementById('status-text').innerText = "業務員：" + currentEmpName;
+          document.getElementById('status-text').innerText = (isAdmin ? "系統管理員：" : "業務員：") + currentEmpName;
           document.getElementById('user-avatar').classList.remove('hidden');
           document.getElementById('avatar-img').src = profile.pictureUrl;
+
+          if (isAdmin) {
+            document.getElementById('admin-badge').classList.remove('hidden');
+            document.getElementById('btn-admin-only').classList.remove('hidden');
+            document.getElementById('hero-card').className = "bg-gradient-to-br from-blue-600 to-indigo-900 p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden transition-all duration-500 admin-glow";
+          }
         }
       } catch (err) {
-        document.getElementById('status-text').innerText = "外部環境執行中";
+        document.getElementById('status-text').innerText = "外部開發環境";
       }
+      renderV3List();
     }
 
-    // --- 路由切換 ---
+    // --- 頁面控制 ---
     function showPage(pageId) {
       document.querySelectorAll('.page-node').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + pageId).classList.add('active');
       window.scrollTo(0, 0);
+    }
+
+    // --- V3 編輯器功能 ---
+    function renderV3List() {
+      const container = document.getElementById('v3-items-container');
+      container.innerHTML = '';
+      v3Items.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = "flex gap-4 p-4 bg-white border border-slate-100 rounded-3xl items-center shadow-sm relative animate-in fade-in slide-in-from-right duration-300";
+        div.innerHTML = `
+          <div class="w-14 h-14 bg-slate-50 rounded-2xl overflow-hidden flex-shrink-0 border border-slate-100 shadow-inner">
+            <img src="${item.img}" class="w-full h-full object-cover">
+          </div>
+          <div class="flex-1 space-y-1">
+            <input type="text" value="${item.title}" onchange="v3Items[${idx}].title=this.value" class="w-full text-xs font-black text-slate-700 bg-transparent outline-none border-b border-transparent focus:border-green-200">
+            <div class="flex items-center gap-2">
+              <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">ID:</span>
+              <input type="text" value="${item.data}" onchange="v3Items[${idx}].data=this.value" class="flex-1 text-[10px] font-bold text-slate-400 bg-transparent outline-none">
+            </div>
+          </div>
+          <button onclick="v3Items.splice(${idx},1);renderV3List()" class="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-400">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addV3Item() {
+      if (v3Items.length >= 8) return alert("最高支援 8 筆項目");
+      v3Items.push({ title: "新發布戰報標題...", data: "item_" + Date.now(), img: "https://aiwe.cc/wp-content/uploads/2026/02/87e6f8054bd3672f2885e38bddb112e2.png" });
+      renderV3List();
+    }
+
+    async function saveV3Content() {
+      const v3Data = {
+        hero: document.getElementById('v3-hero-url').value,
+        theme: document.getElementById('v3-theme-color').value,
+        text: document.getElementById('v3-text-color').value,
+        items: v3Items
+      };
+      
+      showLoading("發布戰報數據中...");
+      try {
+        const response = await fetch(CONFIG.WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            licenseKey: CONFIG.LICENSE_KEY, 
+            action: "saveV3", 
+            empName: currentEmpName, 
+            data: v3Data 
+          })
+        });
+        const r = await response.json();
+        hideLoading();
+        if (r.success) {
+          alert("✅ V3 戰報發布成功！");
+          showPage('home');
+        }
+      } catch (err) { hideLoading(); alert("發布連線失敗"); }
     }
 
     // --- 掃描功能 ---
@@ -179,7 +295,6 @@
     }
 
     function cancelCrop() { document.getElementById('step-crop').classList.add('hidden'); }
-
     function confirmCrop() {
       croppedBase64 = cropper.getCroppedCanvas({ width: 800 }).toDataURL('image/jpeg', 0.85);
       document.getElementById('step-crop').classList.add('hidden');
@@ -192,11 +307,7 @@
         const response = await fetch(CONFIG.WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            licenseKey: CONFIG.LICENSE_KEY, 
-            action: "analyze", 
-            image: croppedBase64.split(',')[1] 
-          })
+          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "analyze", image: croppedBase64.split(',')[1] })
         });
         const r = await response.json();
         hideLoading();
@@ -210,10 +321,8 @@
           document.getElementById('res-address').value = d.address || '';
           document.getElementById('step-capture').classList.add('hidden');
           document.getElementById('step-review').classList.remove('hidden');
-        } else {
-          alert("辨識錯誤：" + (r.error || "未知錯誤"));
         }
-      } catch (err) { hideLoading(); alert("辨識過程發生異常，請檢查網路。"); }
+      } catch (err) { hideLoading(); alert("辨識發生錯誤"); }
     }
 
     async function saveCard() {
@@ -226,27 +335,20 @@
         address: document.getElementById('res-address').value,
         imgBase64: croppedBase64
       };
-      showLoading("正在儲存資料...");
+      showLoading("同步至雲端...");
       try {
         const response = await fetch(CONFIG.WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            licenseKey: CONFIG.LICENSE_KEY, 
-            action: "save", 
-            empName: currentEmpName, 
-            data: cardData 
-          })
+          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "save", empName: currentEmpName, data: cardData })
         });
         const r = await response.json();
         hideLoading();
         if (r.success) {
-          alert("✅ 資料已成功存入 " + currentEmpName + " 的資料庫！");
+          alert("✅ 已歸屬存檔至：" + currentEmpName);
           location.reload();
-        } else {
-          alert("儲存失敗：" + r.error);
         }
-      } catch (err) { hideLoading(); alert("存檔連線異常，請確認 GAS 狀態。"); }
+      } catch (err) { hideLoading(); alert("存檔失敗"); }
     }
 
     function showLoading(t) { document.getElementById('loading-text').innerText = t; document.getElementById('loading').classList.remove('hidden'); }
