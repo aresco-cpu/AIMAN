@@ -45,11 +45,15 @@
     input:focus { border-color: var(--line-green); outline: none; box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.1); }
     label { font-size: 11px; font-weight: 900; color: #64748B; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
 
-    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 12px 30px; border-radius: 50px; font-size: 13px; z-index: 2000; display: none; }
+    .view-toggle { padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 900; cursor: pointer; transition: 0.3s; border: none; }
+    .view-toggle.admin { background: #FDE68A; color: #92400E; }
+    .view-toggle.user { background: #E2E8F0; color: #475569; }
+
+    #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 12px 30px; border-radius: 50px; font-size: 13px; z-index: 2000; display: none; }
     
-    /* 前台純淨模式 */
+    /* 前台純淨模式 - 保留 header 以便切換回來 */
     body.is-preview { background: #fff; }
-    body.is-preview .sidebar, body.is-preview .bottom-nav, body.is-preview header { display: none !important; }
+    body.is-preview .sidebar, body.is-preview .bottom-nav { display: none !important; }
     body.is-preview .main-view { margin-left: 0 !important; padding: 0 !important; }
 
     @media (max-width: 768px) {
@@ -69,7 +73,10 @@
         <div class="w-2 h-8 bg-[#06C755] rounded-full"></div>
         <h2 class="text-xl font-black text-white tracking-tighter">戰情後台</h2>
       </div>
-      <button onclick="toggleViewMode()" class="mt-6 w-full py-2 bg-[#222] border border-gray-700 rounded-lg text-[10px] font-black text-gray-400 hover:text-white transition-all uppercase tracking-widest">切換前台預覽</button>
+      <div class="mt-6 flex items-center justify-between bg-[#1a1a1a] p-2 rounded-lg border border-gray-800">
+         <span class="text-[10px] text-gray-500 font-bold ml-2">切換視角</span>
+         <button id="pc-view-toggle" onclick="toggleViewMode()" class="view-toggle admin">後台</button>
+      </div>
     </div>
     <nav class="flex-1 space-y-1">
       <div onclick="showPage('home')" class="sidebar-item active" data-page="home">數據概覽</div>
@@ -85,13 +92,17 @@
     </div>
   </aside>
 
-  <!-- Mobile 頂部 -->
-  <header class="md:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-40">
+  <!-- Mobile 頂部 (含切換按鈕與頭貼) -->
+  <header class="md:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-40 shadow-sm">
     <div class="flex items-center gap-2">
       <span class="w-1 h-5 bg-[#06C755]"></span>
-      <h1 class="font-black text-gray-800">ACT-BizCard AI</h1>
+      <h1 class="font-black text-gray-800 text-lg tracking-tight">ACT-BizCard</h1>
     </div>
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" id="mobile-avatar" class="w-8 h-8 rounded-full border border-gray-100">
+    <div class="flex items-center gap-3">
+      <!-- 手機版切換按鈕，預設隱藏，若是 Admin 才會顯示 -->
+      <button id="mobile-view-toggle" onclick="toggleViewMode()" class="hidden view-toggle admin shadow-sm">後台</button>
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" id="mobile-avatar" class="w-9 h-9 rounded-full border border-gray-200 shadow-sm object-cover">
+    </div>
   </header>
 
   <!-- 主視圖 -->
@@ -121,13 +132,10 @@
     </div>
 
     <!-- 前台純淨預覽 -->
-    <div id="page-user-preview" class="page-node max-w-[380px] mx-auto pt-10">
+    <div id="page-user-preview" class="page-node max-w-[380px] mx-auto pt-6 pb-10">
         <div class="mock-bubble overflow-hidden mx-auto border-0 shadow-2xl">
             <img id="v3-user-hero" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="w-full aspect-[12/5] object-cover bg-gray-100">
             <div id="v3-user-body" class="bg-white"></div>
-        </div>
-        <div class="mt-12 text-center">
-            <button onclick="toggleViewMode()" class="bg-black text-white px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-xl">返回後台</button>
         </div>
     </div>
 
@@ -177,7 +185,6 @@
             <div>
               <label>頂部主圖 URL</label>
               <div class="flex gap-2">
-                <!-- 這裡加上 oninput="updatePreview()" 不會摧毀 DOM -->
                 <input type="text" id="v3-hero-url" placeholder="網址或上傳..." class="w-full border p-2 rounded-lg text-sm bg-white" oninput="updatePreview()">
                 <button onclick="document.getElementById('hero-file').click()" class="bg-white border px-4 rounded-lg font-black text-xs shrink-0 uppercase text-gray-700">📸 上傳</button>
                 <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
@@ -193,8 +200,6 @@
             <h4 class="font-black text-gray-700 text-lg">2. 內容清單</h4>
             <button onclick="addV3Item()" class="text-[#06C755] text-xs font-black border-2 border-[#06C755] px-4 py-2 rounded-full hover:bg-[#06C755] hover:text-white transition-all">+ 新增欄位</button>
           </div>
-          
-          <!-- 項目列表將渲染在這裡 -->
           <div id="v3-items-list" class="space-y-4"></div>
         </div>
       </div>
@@ -241,13 +246,27 @@
         if (!liff.isLoggedIn()) liff.login();
         else {
           const p = await liff.getProfile();
+          const uid = liff.getContext().userId;
           currentEmpName = p.displayName;
+          const isAdmin = (uid === CONFIG.ADMIN_UID);
+          
           document.getElementById('welcome-name').innerText = currentEmpName;
           document.getElementById('pc-name').innerText = currentEmpName;
           document.getElementById('pc-avatar').src = p.pictureUrl;
           document.getElementById('mobile-avatar').src = p.pictureUrl;
+          
+          // 手機版按鈕：如果是 Admin 就顯示
+          if(isAdmin) {
+             const mBtn = document.getElementById('mobile-view-toggle');
+             if(mBtn) mBtn.classList.remove('hidden');
+          }
         }
-      } catch (e) { console.warn("Liff 尚未載入"); }
+      } catch (e) { 
+        console.warn("Liff 尚未載入"); 
+        // 開發環境預設開啟切換按鈕以便測試
+        const mBtn = document.getElementById('mobile-view-toggle');
+        if(mBtn) mBtn.classList.remove('hidden');
+      }
       
       // 載入時先渲染右側編輯器表單，再同步左側預覽
       renderEditorList();
@@ -256,10 +275,22 @@
     // --- 視圖控制 ---
     window.toggleViewMode = function() { 
       isPreviewMode = !isPreviewMode; 
+      applyViewMode(); 
+    };
+
+    function applyViewMode() {
       document.body.classList.toggle('is-preview', isPreviewMode);
       showPage(isPreviewMode ? 'user-preview' : 'home');
-      document.getElementById('btn-match').classList.toggle('active', isPreviewMode);
-    };
+      
+      // 同步切換按鈕的文字與樣式 (包含 PC 與 Mobile)
+      document.querySelectorAll('#pc-view-toggle, #mobile-view-toggle').forEach(b => {
+        b.innerText = isPreviewMode ? "前台" : "後台";
+        b.className = isPreviewMode ? "view-toggle user shadow-sm" : "view-toggle admin shadow-sm";
+      });
+      
+      const btnMatch = document.getElementById('btn-match');
+      if(btnMatch) btnMatch.classList.toggle('active', isPreviewMode);
+    }
 
     window.showPage = function(pId) {
       document.querySelectorAll('.page-node').forEach(p => p.classList.remove('active'));
@@ -279,29 +310,24 @@
     window.showToast = function(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display='none', 3000); };
 
     // ============================================================================
-    // V3 編輯器引擎核心 (徹底解決輸入游標消失問題)
+    // V3 編輯器引擎核心
     // ============================================================================
 
-    // 1. 僅更新資料陣列，然後觸發預覽重繪 (不摧毀右側編輯器 DOM)
     window.updateItemData = function(idx, field, value) {
       v3Items[idx][field] = value;
       updatePreview();
     };
 
-    // 2. 左側模擬器與前台預覽 (分離渲染)
     window.updatePreview = function() {
       const theme = document.getElementById('v3-theme-color').value;
       const tCol = document.getElementById('v3-text-color').value;
       const heroUrl = document.getElementById('v3-hero-url').value || DUMMY_IMG;
       
-      // 同步頂部圖片
       document.getElementById('v3-mock-hero').src = heroUrl;
       document.getElementById('v3-user-hero').src = heroUrl;
 
-      // 構建列表 HTML
       let itemsHtml = '';
       v3Items.forEach((item, idx) => {
-        // 若圖片經由上傳改變了，也順便更新右側編輯器內的縮圖
         const thumb = document.getElementById(`thumb-img-${idx}`);
         if(thumb) thumb.src = item.img || DUMMY_IMG;
 
@@ -317,12 +343,10 @@
         `;
       });
 
-      // 同步寫入模擬器與前台預覽
       document.getElementById('v3-mock-body').innerHTML = itemsHtml;
       document.getElementById('v3-user-body').innerHTML = itemsHtml;
     };
 
-    // 3. 右側編輯表單渲染 (只有在新增或刪除項目時才會被呼叫)
     window.renderEditorList = function() {
       const container = document.getElementById('v3-items-list');
       container.innerHTML = ''; 
@@ -334,7 +358,7 @@
           <div class="w-24 h-24 bg-gray-100 border border-gray-300 rounded-lg relative overflow-hidden shrink-0 group cursor-pointer" onclick="document.getElementById('file-${idx}').click()">
             <img id="thumb-img-${idx}" src="${item.img || DUMMY_IMG}" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-              <span class="text-xs text-white font-bold tracking-widest">更換圖片</span>
+              <span class="text-xs text-white font-bold tracking-widest">更換</span>
             </div>
             <input type="file" id="file-${idx}" class="hidden" accept="image/*" onchange="handleV3Upload(this, ${idx})">
           </div>
@@ -351,30 +375,20 @@
         container.appendChild(div);
       });
       
-      // 表單建構完成後，呼叫一次預覽更新
       updatePreview();
     };
 
     window.addV3Item = function() { 
       if (v3Items.length >= 8) return showToast("最多 8 筆資料");
-      v3Items.push({ 
-        title: "", 
-        data: "item_" + Date.now(), 
-        img: DUMMY_IMG, 
-        btn: "查看", 
-        link: "" 
-      }); 
-      renderEditorList(); // 新增項目需要重建表單 DOM
+      v3Items.push({ title: "", data: "item_" + Date.now(), img: DUMMY_IMG, btn: "查看", link: "" }); 
+      renderEditorList(); 
     };
 
     window.removeV3Item = function(idx) {
       v3Items.splice(idx, 1);
-      renderEditorList(); // 刪除項目需要重建表單 DOM
+      renderEditorList(); 
     };
 
-    // ============================================================================
-    // 圖片上傳與壓縮機制 (防呆版)
-    // ============================================================================
     window.handleV3Upload = async function(input, target) {
       if (!input.files || !input.files[0]) return;
       showLoading("圖片處理與上傳中...");
@@ -383,7 +397,6 @@
       reader.onload = function(e) {
         const img = new Image();
         img.onload = async function() {
-          // 強制壓縮至最大寬度 800px，品質 0.7
           const canvas = document.createElement('canvas');
           const maxW = 800; 
           let w = img.width, h = img.height;
@@ -411,25 +424,23 @@
               else v3Items[target].img = res.url;
               showToast("✅ 圖片已成功存入 Google Drive");
             } else {
-              throw new Error(res.error || "傳輸失敗");
+              throw new Error(res.error || "GAS 或 Worker 發生錯誤");
             }
           } catch (err) {
             console.error("Upload Error:", err);
-            // 容錯機制：如果失敗，直接將壓縮後的 Base64 保存
             if (target === 'hero') document.getElementById('v3-hero-url').value = compressedBase64;
             else v3Items[target].img = compressedBase64;
-            showToast("⚠️ 上傳 Drive 失敗，改用暫存模式。請確認 GAS 已發布為新版本！");
+            showToast("⚠️ 上傳 Drive 失敗，改用暫存模式。");
           }
           
           hideLoading(); 
-          updatePreview(); // 更新預覽畫面即可，不需要重建右側表單
+          updatePreview();
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(input.files[0]);
     };
 
-    // --- 發布配置 ---
     window.saveV3Content = async function() {
       const data = { 
         hero: document.getElementById('v3-hero-url').value, 
@@ -465,7 +476,6 @@
       }
     };
 
-    // --- AI 名片掃描 ---
     window.handleFile = function(input) { 
       if (input.files && input.files[0]) { 
         const r = new FileReader(); 
