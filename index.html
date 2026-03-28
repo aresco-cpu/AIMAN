@@ -34,10 +34,43 @@
     .nav-btn svg { width: 24px; height: 24px; stroke-width: 2.5; }
     .nav-btn.active { color: #10b981; } /* DaisyUI Success Green */
     
+    /* V3 編輯器佈局 (比例平衡優化) */
+    .editor-container { 
+      display: grid; 
+      /* 左側380px，右側最大720px，防止無限拉長 */
+      grid-template-columns: 380px minmax(0, 720px); 
+      justify-content: center; 
+      gap: 32px; 
+      height: calc(100vh - 170px); 
+    }
+    .preview-pane { 
+      background: #fff; 
+      border: 1px solid #E2E8F0; 
+      border-radius: 16px; 
+      padding: 24px; 
+      overflow-y: auto; 
+      position: sticky; 
+      top: 0; 
+      box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); 
+    }
+    .form-pane { 
+      background: #fff; 
+      border: 1px solid #E2E8F0; 
+      border-radius: 16px; 
+      padding: 32px; 
+      overflow-y: auto; 
+      box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); 
+    }
+    
     /* 前台純淨模式 */
     body.is-preview { background: #f8fafc; }
     body.is-preview .bottom-nav, body.is-preview .navbar { display: none !important; }
     body.is-preview .main-view { padding: 0 !important; }
+
+    @media (max-width: 1024px) {
+      .editor-container { grid-template-columns: 1fr; height: auto; }
+      .preview-pane { position: static; max-width: 480px; margin: 0 auto; width: 100%; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans overflow-x-hidden">
@@ -67,7 +100,7 @@
 
   <!-- 主視圖區域 -->
   <main class="main-view pb-24 md:pb-10 pt-6">
-    <div class="container mx-auto px-4 lg:px-8 max-w-6xl">
+    <div class="container mx-auto px-4 lg:px-8 max-w-7xl">
       
       <!-- 1. 首頁儀表板 -->
       <div id="page-home" class="page-node active space-y-6">
@@ -137,82 +170,77 @@
         </div>
       </div>
 
-      <!-- 3. V3 編輯器 (左右雙欄 DaisyUI 佈局) -->
+      <!-- 3. V3 編輯器 (比例優化對齊版) -->
       <div id="page-editor" class="page-node">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- 容器置中並限制最大寬度，對齊下方的 Grid -->
+        <div class="max-w-[1132px] mx-auto">
           
-          <!-- 左側：編輯表單 (span-2) -->
-          <div class="lg:col-span-2 space-y-6">
+          <!-- 標題與按鈕區塊 -->
+          <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+            <div>
+              <h2 class="text-2xl font-black text-slate-800">V3 戰報模板編輯器</h2>
+              <p class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest">Image Storage: Google Drive Linked</p>
+            </div>
+            <button onclick="saveV3Content()" class="btn btn-success text-white px-8 shadow-lg border-none hover:scale-105 transition-transform">發布變更</button>
+          </div>
+
+          <!-- 編輯與預覽雙欄佈局 -->
+          <div class="editor-container">
             
-            <div class="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <!-- 左側：手機預覽 (寬度 380px) -->
+            <div class="preview-pane no-scrollbar">
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Mobile Live Preview</p>
+              
+              <!-- 模擬對話框外觀 -->
+              <div class="mock-bubble">
+                 <img id="v3-mock-hero" src="" class="w-full aspect-[12/5] object-cover bg-slate-100" />
+                 <div id="v3-mock-body" class="bg-white"></div>
+              </div>
+            </div>
+
+            <!-- 右側：編輯表單 (最大寬度 720px) -->
+            <div class="form-pane no-scrollbar space-y-8">
+              
+              <!-- 區塊 1: 品牌主視覺 -->
               <div>
-                <h2 class="text-xl font-black text-slate-800">建立 V3 戰報訊息</h2>
-                <p class="text-xs text-slate-500 font-bold mt-1">Google Drive 雲端影像連動</p>
-              </div>
-              <button onclick="saveV3Content()" class="btn btn-success text-white px-8 shadow-lg border-none hover:scale-105 transition-transform">發布變更</button>
-            </div>
-
-            <!-- 卡片：品牌主視覺 -->
-            <div class="card bg-white shadow-xl border border-slate-200">
-              <div class="card-body p-6 md:p-8">
-                <h2 class="card-title text-slate-700 text-lg mb-2">1. 品牌主視覺</h2>
-                <div class="form-control w-full">
-                  <label class="label"><span class="label-text font-bold text-slate-500 uppercase">頂部主圖 URL</span></label>
-                  <div class="flex gap-2">
-                    <input type="text" id="v3-hero-url" placeholder="網址或點擊右側上傳..." class="input input-bordered w-full focus:border-green-500" oninput="updatePreview()">
-                    <button onclick="document.getElementById('hero-file').click()" class="btn btn-neutral shrink-0">📸 上傳</button>
-                    <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
+                <h4 class="font-black text-slate-700 text-lg mb-4 flex items-center gap-2">
+                  <span class="w-1.5 h-5 bg-green-500 rounded-full inline-block"></span>1. 品牌主視覺
+                </h4>
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                  <div class="form-control w-full mb-4">
+                    <label class="label px-0 pt-0"><span class="label-text font-bold text-slate-600 uppercase">頂部主圖 URL</span></label>
+                    <div class="flex gap-2">
+                      <input type="text" id="v3-hero-url" placeholder="網址或點擊右側上傳..." class="input input-sm input-bordered w-full focus:border-green-500 bg-white" oninput="updatePreview()">
+                      <button onclick="document.getElementById('hero-file').click()" class="btn btn-sm btn-neutral shrink-0 px-4">📸 上傳</button>
+                      <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
+                    </div>
                   </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mt-2">
-                  <div class="form-control w-full">
-                    <label class="label"><span class="label-text font-bold text-slate-500 uppercase">主題顏色</span></label>
-                    <input type="color" id="v3-theme-color" value="#E91E63" class="w-full h-12 cursor-pointer rounded-lg border border-slate-300 p-1" oninput="updatePreview()">
-                  </div>
-                  <div class="form-control w-full">
-                    <label class="label"><span class="label-text font-bold text-slate-500 uppercase">文字顏色</span></label>
-                    <input type="color" id="v3-text-color" value="#ffffff" class="w-full h-12 cursor-pointer rounded-lg border border-slate-300 p-1" oninput="updatePreview()">
+                  <div class="grid grid-cols-2 gap-6">
+                    <div class="form-control w-full">
+                      <label class="label px-0 pt-0"><span class="label-text font-bold text-slate-600 uppercase">主題顏色</span></label>
+                      <input type="color" id="v3-theme-color" value="#E91E63" class="w-full h-10 cursor-pointer rounded-lg border border-slate-200 p-1 bg-white" oninput="updatePreview()">
+                    </div>
+                    <div class="form-control w-full">
+                      <label class="label px-0 pt-0"><span class="label-text font-bold text-slate-600 uppercase">文字顏色</span></label>
+                      <input type="color" id="v3-text-color" value="#ffffff" class="w-full h-10 cursor-pointer rounded-lg border border-slate-200 p-1 bg-white" oninput="updatePreview()">
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 卡片：內容清單 -->
-            <div class="card bg-white shadow-xl border border-slate-200">
-              <div class="card-body p-6 md:p-8">
+              <!-- 區塊 2: 內容清單 -->
+              <div>
                 <div class="flex items-center justify-between mb-4">
-                  <h2 class="card-title text-slate-700 text-lg">2. 內容清單</h2>
-                  <button onclick="addV3Item()" class="btn btn-outline btn-success btn-sm rounded-full">+ 新增欄位</button>
+                  <h4 class="font-black text-slate-700 text-lg flex items-center gap-2">
+                    <span class="w-1.5 h-5 bg-green-500 rounded-full inline-block"></span>2. 內容清單
+                  </h4>
+                  <button onclick="addV3Item()" class="btn btn-outline btn-success btn-sm rounded-full bg-white">+ 新增欄位</button>
                 </div>
                 <div id="v3-items-list" class="space-y-4"></div>
               </div>
-            </div>
-          </div>
 
-          <!-- 右側：手機預覽 (span-1) -->
-          <div class="lg:col-span-1 hidden md:block">
-            <div class="sticky top-24">
-              <!-- LINE 對話框模擬器 -->
-              <div style="width: 320px; height: 620px;" class="mx-auto border-[8px] border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden bg-[#93A3B8] relative">
-                <!-- 瀏海 -->
-                <div class="w-full h-6 bg-slate-800 flex justify-center items-end pb-1 z-20 relative">
-                  <div class="w-20 h-4 bg-black rounded-full"></div>
-                </div>
-                <!-- 螢幕內容 -->
-                <div class="p-3 space-y-4 h-[calc(100%-24px)] overflow-y-auto no-scrollbar pb-20">
-                  <div class="chat chat-start mt-2">
-                    <div class="chat-bubble bg-white text-slate-800 text-xs shadow-sm font-bold">您好！這是您的專屬資訊：</div>
-                  </div>
-                  <!-- Flex Container -->
-                  <div class="rounded-2xl overflow-hidden shadow-lg bg-white border border-slate-100">
-                     <img id="v3-mock-hero" src="" class="w-full aspect-[12/5] object-cover bg-slate-100" />
-                     <div id="v3-mock-body" class="bg-white"></div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
-          
         </div>
       </div>
 
@@ -399,9 +427,9 @@
 
       v3Items.forEach((item, idx) => {
         const div = document.createElement('div');
-        div.className = "bg-slate-50 border border-slate-200 rounded-2xl p-5 flex gap-5 relative shadow-sm";
+        div.className = "bg-white border border-slate-200 rounded-2xl p-5 flex gap-5 relative shadow-sm";
         div.innerHTML = `
-          <div class="w-24 h-24 bg-white border border-slate-200 rounded-xl relative overflow-hidden shrink-0 group cursor-pointer shadow-inner" onclick="document.getElementById('file-${idx}').click()">
+          <div class="w-24 h-24 bg-slate-50 border border-slate-200 rounded-xl relative overflow-hidden shrink-0 group cursor-pointer shadow-inner" onclick="document.getElementById('file-${idx}').click()">
             <img id="thumb-img-${idx}" src="${item.img || DUMMY_IMG}" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
               <span class="text-xs text-white font-bold tracking-widest uppercase">更換</span>
@@ -409,11 +437,11 @@
             <input type="file" id="file-${idx}" class="hidden" accept="image/*" onchange="handleV3Upload(this, ${idx})">
           </div>
           <div class="flex-1 flex flex-col gap-3">
-            <input type="text" value="${item.title}" placeholder="資訊標題..." class="input input-sm input-bordered w-full font-bold text-slate-700" oninput="updateItemData(${idx}, 'title', this.value)">
-            <input type="text" value="${item.link}" placeholder="點擊跳轉網址 (https://...)" class="input input-sm input-bordered w-full font-mono text-blue-600" oninput="updateItemData(${idx}, 'link', this.value)">
+            <input type="text" value="${item.title}" placeholder="資訊標題..." class="input input-sm input-bordered w-full font-bold text-slate-700 bg-white focus:border-green-500" oninput="updateItemData(${idx}, 'title', this.value)">
+            <input type="text" value="${item.link}" placeholder="點擊跳轉網址 (https://...)" class="input input-sm input-bordered w-full font-mono text-blue-600 bg-white focus:border-green-500" oninput="updateItemData(${idx}, 'link', this.value)">
             <div class="grid grid-cols-2 gap-3">
-              <input type="text" value="${item.data}" placeholder="追蹤 ID" class="input input-sm input-bordered w-full bg-white" oninput="updateItemData(${idx}, 'data', this.value)">
-              <input type="text" value="${item.btn}" placeholder="按鈕文字" class="input input-sm input-bordered w-full font-bold" oninput="updateItemData(${idx}, 'btn', this.value)">
+              <input type="text" value="${item.data}" placeholder="追蹤 ID" class="input input-sm input-bordered w-full bg-slate-50 focus:border-green-500" oninput="updateItemData(${idx}, 'data', this.value)">
+              <input type="text" value="${item.btn}" placeholder="按鈕文字" class="input input-sm input-bordered w-full font-bold bg-white focus:border-green-500" oninput="updateItemData(${idx}, 'btn', this.value)">
             </div>
           </div>
           <button onclick="removeV3Item(${idx})" class="btn btn-circle btn-xs absolute -top-3 -right-3 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-200 shadow-md">✕</button>
