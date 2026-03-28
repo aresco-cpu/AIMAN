@@ -1,224 +1,262 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ACT-BizCard 業務戰情中心</title>
-  <!-- 核心元件載入 -->
+  
+  <!-- Tailwind CSS & DaisyUI -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Cropper.js & LIFF -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
   <style>
-    :root {
-      --line-green: #06C755;
-      --line-dark: #111111;
-      --line-gray-bg: #F4F5F9;
-      --line-border: #E2E8F0;
-      --sidebar-width: 240px;
+    /* 微調 Manus 感的漸層背景 */
+    .manus-gradient {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     }
-    body { background-color: var(--line-gray-bg); font-family: -apple-system, sans-serif; overflow-x: hidden; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
     .page-node { display: none; }
     .page-node.active { display: block; }
     
-    /* PC 側邊欄 */
-    .sidebar { width: var(--sidebar-width); background: var(--line-dark); color: #fff; height: 100vh; position: fixed; top: 0; left: 0; z-index: 50; }
-    .sidebar-item { padding: 14px 24px; color: #999; cursor: pointer; font-size: 14px; border-left: 4px solid transparent; transition: 0.2s; }
-    .sidebar-item:hover { background: #222; color: #fff; }
-    .sidebar-item.active { background: #222; color: #fff; border-left-color: var(--line-green); }
-    
     /* 底部導覽列 (Mobile) */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--line-border); height: 75px; display: flex; z-index: 60; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #1E293B; font-size: 11px; font-weight: 900; gap: 4px; }
-    .nav-btn svg { width: 22px; height: 22px; stroke-width: 2.5; }
-    .nav-btn.active { color: #E91E63; }
-    
-    /* V3 編輯器佈局 */
-    .editor-container { display: grid; grid-template-columns: 360px 1fr; gap: 30px; height: calc(100vh - 160px); }
-    .preview-pane { background: #fff; border: 1px solid var(--line-border); border-radius: 16px; padding: 20px; overflow-y: auto; position: sticky; top: 0; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .form-pane { background: #fff; border: 1px solid var(--line-border); border-radius: 16px; padding: 30px; overflow-y: auto; }
-    .mock-bubble { border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; background: #fff; }
-
-    /* 輸入框與滾動條 */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    input, textarea { border: 1px solid #D1D5DB; border-radius: 6px; padding: 10px 14px; font-size: 14px; width: 100%; transition: 0.2s; }
-    input:focus { border-color: var(--line-green); outline: none; box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.1); }
-    label { font-size: 11px; font-weight: 900; color: #64748B; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
-
-    .view-toggle { padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 900; cursor: pointer; transition: 0.3s; border: none; }
-    .view-toggle.admin { background: #FDE68A; color: #92400E; }
-    .view-toggle.user { background: #E2E8F0; color: #475569; }
-
-    #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 12px 30px; border-radius: 50px; font-size: 13px; z-index: 2000; display: none; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #E2E8F0; height: 75px; display: flex; z-index: 60; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05); }
+    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-size: 11px; font-weight: 900; gap: 4px; transition: 0.2s; }
+    .nav-btn svg { width: 24px; height: 24px; stroke-width: 2.5; }
+    .nav-btn.active { color: #10b981; } /* DaisyUI Success Green */
     
     /* 前台純淨模式 */
-    body.is-preview { background: #fff; }
-    body.is-preview .sidebar, body.is-preview .bottom-nav { display: none !important; }
-    body.is-preview .main-view { margin-left: 0 !important; padding: 0 !important; }
-
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .main-view { margin-left: 0 !important; padding-bottom: 100px !important; }
-      .editor-container { grid-template-columns: 1fr; height: auto; }
-      .preview-pane { position: static; }
-    }
+    body.is-preview { background: #f8fafc; }
+    body.is-preview .bottom-nav, body.is-preview .navbar { display: none !important; }
+    body.is-preview .main-view { padding: 0 !important; }
   </style>
 </head>
-<body class="overflow-x-hidden">
+<body class="bg-slate-50 min-h-screen font-sans overflow-x-hidden">
 
-  <!-- PC 側欄 -->
-  <aside id="pc-sidebar" class="sidebar hidden md:flex flex-col">
-    <div class="p-8">
-      <div class="flex items-center gap-3">
-        <div class="w-2 h-8 bg-[#06C755] rounded-full"></div>
-        <h2 class="text-xl font-black text-white tracking-tighter">戰情後台</h2>
-      </div>
-      <div class="mt-6 flex items-center justify-between bg-[#1a1a1a] p-2 rounded-lg border border-gray-800">
-         <span class="text-[10px] text-gray-500 font-bold ml-2">切換視角</span>
-         <button id="pc-view-toggle" onclick="toggleViewMode()" class="view-toggle admin">後台</button>
+  <!-- 全域頂部導覽列 (Manus Gradient) -->
+  <div class="navbar manus-gradient text-white shadow-lg px-4 md:px-6 sticky top-0 z-40">
+    <div class="flex-1">
+      <a class="text-xl font-black tracking-tighter cursor-pointer" onclick="showPage('home')">WoWa<span class="text-green-400">Link</span></a>
+    </div>
+    <div class="flex-none gap-3">
+      <!-- 狀態標籤 (PC 顯示) -->
+      <div class="hidden md:flex badge badge-success font-bold text-white border-none shadow-sm">AI 診斷已就緒</div>
+      
+      <!-- 視角切換按鈕 (僅 Admin 可見) -->
+      <button id="view-toggle-btn" onclick="toggleViewMode()" class="hidden btn btn-sm btn-warning text-yellow-900 rounded-full font-black shadow-md border-none">後台模式</button>
+      
+      <!-- 用戶頭貼 -->
+      <div class="dropdown dropdown-end">
+        <label tabindex="0" class="btn btn-ghost btn-circle avatar border-2 border-white/20">
+          <div class="w-10 rounded-full">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" id="user-avatar" class="object-cover" />
+          </div>
+        </label>
       </div>
     </div>
-    <nav class="flex-1 space-y-1">
-      <div onclick="showPage('home')" class="sidebar-item active" data-page="home">數據概覽</div>
-      <div onclick="showPage('scanner')" class="sidebar-item" data-page="scanner">名片採集</div>
-      <div onclick="showPage('editor')" class="sidebar-item" data-page="editor">V3 內容發布</div>
-    </nav>
-    <div class="p-6 bg-[#0a0a0a] flex items-center gap-3">
-      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" id="pc-avatar" class="w-10 h-10 rounded-full border-2 border-gray-800">
-      <div class="overflow-hidden text-white">
-        <p id="pc-name" class="text-sm font-bold truncate">Tonyfang</p>
-        <p class="text-[9px] text-green-500 font-black">ADMIN MODE</p>
-      </div>
-    </div>
-  </aside>
+  </div>
 
-  <!-- Mobile 頂部 -->
-  <header class="md:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-40 shadow-sm">
-    <div class="flex items-center gap-2">
-      <span class="w-1 h-5 bg-[#06C755]"></span>
-      <h1 class="font-black text-gray-800 text-lg tracking-tight">ACT-BizCard</h1>
-    </div>
-    <div class="flex items-center gap-3">
-      <!-- 手機版切換按鈕，預設隱藏，若是 Admin 才會顯示 -->
-      <button id="mobile-view-toggle" onclick="toggleViewMode()" class="hidden view-toggle admin shadow-sm">後台</button>
-      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" id="mobile-avatar" class="w-9 h-9 rounded-full border border-gray-200 shadow-sm object-cover">
-    </div>
-  </header>
-
-  <!-- 主視圖 -->
-  <main class="main-view md:ml-[240px] p-4 md:p-10 transition-all">
-    
-    <!-- 儀表板 -->
-    <div id="page-home" class="page-node active space-y-6">
-      <div class="bg-white p-8 border border-gray-200 rounded-2xl shadow-sm">
-        <h3 class="text-2xl font-bold text-gray-800 tracking-tight">您好，<span id="welcome-name" class="text-green-600">Tonyfang</span></h3>
-        <p class="text-gray-400 text-sm mt-1">管理權限：全域管理員 | 雲端相片庫連線成功</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-8 border border-gray-200 rounded-2xl shadow-sm">
-          <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">當月名片採集</p>
-          <h4 class="text-5xl font-black text-gray-800 mt-2">382</h4>
-        </div>
-        <div onclick="showPage('scanner')" class="bg-white p-8 border border-gray-200 rounded-2xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
-          <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">📸</div>
-          <h5 class="font-bold text-gray-800">開始掃描名片</h5>
-        </div>
-        <div onclick="showPage('editor')" class="bg-white p-8 border border-gray-200 rounded-2xl shadow-sm cursor-pointer hover:border-green-500 transition-all group">
-          <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎨</div>
-          <h5 class="font-bold text-gray-800">編輯 V3 戰報</h5>
-        </div>
-      </div>
-    </div>
-
-    <!-- 前台純淨預覽 -->
-    <div id="page-user-preview" class="page-node max-w-[380px] mx-auto pt-6 pb-10">
-        <div class="mock-bubble overflow-hidden mx-auto border-0 shadow-2xl">
-            <img id="v3-user-hero" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="w-full aspect-[12/5] object-cover bg-gray-100">
-            <div id="v3-user-body" class="bg-white"></div>
-        </div>
-    </div>
-
-    <!-- 掃描器 -->
-    <div id="page-scanner" class="page-node max-w-2xl mx-auto">
-      <div id="step-capture" class="bg-white p-12 border border-gray-200 rounded-3xl text-center space-y-6">
-        <div class="aspect-[1.58/1] w-full border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center bg-gray-50 relative group cursor-pointer overflow-hidden">
-          <input type="file" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 z-10 cursor-pointer" onchange="handleFile(this)">
-          <span class="text-5xl group-hover:scale-110 transition-transform">📸</span>
-          <p class="text-sm font-black text-gray-500 mt-4">拍照或上傳名片</p>
-        </div>
-      </div>
-      <div id="step-review" class="hidden bg-white p-8 border border-gray-200 rounded-3xl shadow-sm space-y-5 animate-in slide-in-from-bottom duration-500">
-        <div class="grid grid-cols-2 gap-4">
-          <div><label>姓名</label><input type="text" id="res-name"></div>
-          <div><label>電話</label><input type="text" id="res-phone"></div>
-        </div>
-        <div><label>公司</label><input type="text" id="res-company"></div>
-        <button onclick="saveCard()" class="w-full bg-[#06C755] text-white py-4 rounded-xl font-black text-lg">確認入庫</button>
-      </div>
-    </div>
-
-    <!-- V3 編輯器 -->
-    <div id="page-editor" class="page-node">
-      <div class="flex items-center justify-between mb-8 border-b pb-6">
-        <div>
-          <h2 class="text-2xl font-black text-gray-800">V3 戰報模板編輯器</h2>
-          <p class="text-xs text-gray-400 font-bold mt-1 uppercase tracking-widest">Image Storage: Google Drive Linked</p>
-        </div>
-        <button onclick="saveV3Content()" class="bg-[#06C755] text-white px-10 py-3 rounded-lg font-black shadow-lg">發布變更</button>
-      </div>
-
-      <div class="editor-container">
-        <!-- 預覽側 -->
-        <div class="preview-pane no-scrollbar">
-          <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Mobile Live Preview</p>
-          <div class="mock-bubble">
-            <img id="v3-mock-hero" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="w-full aspect-[12/5] object-cover bg-gray-100">
-            <div id="v3-mock-body" class="bg-white"></div>
+  <!-- 主視圖區域 -->
+  <main class="main-view pb-24 md:pb-10 pt-6">
+    <div class="container mx-auto px-4 lg:px-8 max-w-6xl">
+      
+      <!-- 1. 首頁儀表板 -->
+      <div id="page-home" class="page-node active space-y-6">
+        <div class="card bg-white shadow-xl border border-slate-200">
+          <div class="card-body">
+            <h2 class="card-title text-2xl font-black text-slate-800">您好，<span id="welcome-name" class="text-green-500">使用者</span></h2>
+            <p class="text-slate-500 text-sm font-medium">系統授權與雲端相片庫連線狀態：<span class="text-success font-bold">正常</span></p>
           </div>
         </div>
 
-        <!-- 編輯側 -->
-        <div class="form-pane no-scrollbar">
-          <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8 space-y-6">
-            <h4 class="font-black text-gray-700 text-lg">1. 品牌主視覺</h4>
-            <div>
-              <label>頂部主圖 URL</label>
-              <div class="flex gap-2">
-                <input type="text" id="v3-hero-url" placeholder="網址或上傳..." class="w-full border p-2 rounded-lg text-sm bg-white" oninput="updatePreview()">
-                <button onclick="document.getElementById('hero-file').click()" class="bg-white border px-4 rounded-lg font-black text-xs shrink-0 uppercase text-gray-700">📸 上傳</button>
-                <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="card bg-white shadow-xl border border-slate-200">
+            <div class="card-body items-center text-center">
+              <h2 class="card-title text-xs font-black text-slate-400 uppercase tracking-widest">當月採集量</h2>
+              <p class="text-6xl font-black text-slate-800 my-2">382</p>
+            </div>
+          </div>
+          <div onclick="showPage('scanner')" class="card bg-white shadow-xl border border-slate-200 cursor-pointer hover:-translate-y-1 hover:border-green-500 transition-all group">
+            <div class="card-body items-center text-center">
+              <div class="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
+              <h2 class="card-title text-slate-800">名片掃描</h2>
+              <p class="text-xs text-slate-500">AI OCR 自動辨識</p>
+            </div>
+          </div>
+          <div onclick="showPage('editor')" class="card bg-white shadow-xl border border-slate-200 cursor-pointer hover:-translate-y-1 hover:border-green-500 transition-all group">
+            <div class="card-body items-center text-center">
+              <div class="text-5xl mb-2 group-hover:scale-110 transition-transform">🎨</div>
+              <h2 class="card-title text-slate-800">V3 戰報編輯</h2>
+              <p class="text-xs text-slate-500">Flex Message 發布</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. AI 掃描器 -->
+      <div id="page-scanner" class="page-node max-w-2xl mx-auto">
+        <div id="step-capture" class="card bg-white shadow-xl border border-slate-200">
+          <div class="card-body items-center text-center p-12">
+            <div class="aspect-[1.58/1] w-full border-4 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden hover:bg-slate-100 transition-colors">
+              <input type="file" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 z-10 cursor-pointer" onchange="handleFile(this)">
+              <span class="text-6xl mb-4">📸</span>
+              <p class="font-black text-slate-500 tracking-widest uppercase">拍攝或上傳名片</p>
+            </div>
+          </div>
+        </div>
+        <div id="step-review" class="hidden card bg-white shadow-xl border border-slate-200 mt-6 animate-in slide-in-from-bottom">
+          <div class="card-body">
+            <h2 class="card-title mb-4">確認名片數據</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-control w-full">
+                <label class="label"><span class="label-text font-bold text-slate-500">姓名</span></label>
+                <input type="text" id="res-name" class="input input-bordered w-full" />
+              </div>
+              <div class="form-control w-full">
+                <label class="label"><span class="label-text font-bold text-slate-500">電話</span></label>
+                <input type="text" id="res-phone" class="input input-bordered w-full" />
+              </div>
+              <div class="form-control w-full md:col-span-2">
+                <label class="label"><span class="label-text font-bold text-slate-500">公司名稱</span></label>
+                <input type="text" id="res-company" class="input input-bordered w-full" />
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div><label>主題顏色</label><input type="color" id="v3-theme-color" value="#E91E63" class="w-full h-10 p-1 cursor-pointer border rounded-lg bg-white" oninput="updatePreview()"></div>
-              <div><label>文字顏色</label><input type="color" id="v3-text-color" value="#ffffff" class="w-full h-10 p-1 cursor-pointer border rounded-lg bg-white" oninput="updatePreview()"></div>
+            <div class="card-actions justify-end mt-6">
+              <button onclick="saveCard()" class="btn btn-success text-white px-8 shadow-lg w-full md:w-auto">確認入庫</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. V3 編輯器 (左右雙欄 DaisyUI 佈局) -->
+      <div id="page-editor" class="page-node">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <!-- 左側：編輯表單 (span-2) -->
+          <div class="lg:col-span-2 space-y-6">
+            
+            <div class="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+              <div>
+                <h2 class="text-xl font-black text-slate-800">建立 V3 戰報訊息</h2>
+                <p class="text-xs text-slate-500 font-bold mt-1">Google Drive 雲端影像連動</p>
+              </div>
+              <button onclick="saveV3Content()" class="btn btn-success text-white px-8 shadow-lg border-none hover:scale-105 transition-transform">發布變更</button>
+            </div>
+
+            <!-- 卡片：品牌主視覺 -->
+            <div class="card bg-white shadow-xl border border-slate-200">
+              <div class="card-body p-6 md:p-8">
+                <h2 class="card-title text-slate-700 text-lg mb-2">1. 品牌主視覺</h2>
+                <div class="form-control w-full">
+                  <label class="label"><span class="label-text font-bold text-slate-500 uppercase">頂部主圖 URL</span></label>
+                  <div class="flex gap-2">
+                    <input type="text" id="v3-hero-url" placeholder="網址或點擊右側上傳..." class="input input-bordered w-full focus:border-green-500" oninput="updatePreview()">
+                    <button onclick="document.getElementById('hero-file').click()" class="btn btn-neutral shrink-0">📸 上傳</button>
+                    <input type="file" id="hero-file" class="hidden" accept="image/*" onchange="handleV3Upload(this, 'hero')">
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                  <div class="form-control w-full">
+                    <label class="label"><span class="label-text font-bold text-slate-500 uppercase">主題顏色</span></label>
+                    <input type="color" id="v3-theme-color" value="#E91E63" class="w-full h-12 cursor-pointer rounded-lg border border-slate-300 p-1" oninput="updatePreview()">
+                  </div>
+                  <div class="form-control w-full">
+                    <label class="label"><span class="label-text font-bold text-slate-500 uppercase">文字顏色</span></label>
+                    <input type="color" id="v3-text-color" value="#ffffff" class="w-full h-12 cursor-pointer rounded-lg border border-slate-300 p-1" oninput="updatePreview()">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 卡片：內容清單 -->
+            <div class="card bg-white shadow-xl border border-slate-200">
+              <div class="card-body p-6 md:p-8">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="card-title text-slate-700 text-lg">2. 內容清單</h2>
+                  <button onclick="addV3Item()" class="btn btn-outline btn-success btn-sm rounded-full">+ 新增欄位</button>
+                </div>
+                <div id="v3-items-list" class="space-y-4"></div>
+              </div>
             </div>
           </div>
 
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="font-black text-gray-700 text-lg">2. 內容清單</h4>
-            <button onclick="addV3Item()" class="text-[#06C755] text-xs font-black border-2 border-[#06C755] px-4 py-2 rounded-full hover:bg-[#06C755] hover:text-white transition-all">+ 新增欄位</button>
+          <!-- 右側：手機預覽 (span-1) -->
+          <div class="lg:col-span-1 hidden md:block">
+            <div class="sticky top-24">
+              <!-- LINE 對話框模擬器 -->
+              <div style="width: 320px; height: 620px;" class="mx-auto border-[8px] border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden bg-[#93A3B8] relative">
+                <!-- 瀏海 -->
+                <div class="w-full h-6 bg-slate-800 flex justify-center items-end pb-1 z-20 relative">
+                  <div class="w-20 h-4 bg-black rounded-full"></div>
+                </div>
+                <!-- 螢幕內容 -->
+                <div class="p-3 space-y-4 h-[calc(100%-24px)] overflow-y-auto no-scrollbar pb-20">
+                  <div class="chat chat-start mt-2">
+                    <div class="chat-bubble bg-white text-slate-800 text-xs shadow-sm font-bold">您好！這是您的專屬資訊：</div>
+                  </div>
+                  <!-- Flex Container -->
+                  <div class="rounded-2xl overflow-hidden shadow-lg bg-white border border-slate-100">
+                     <img id="v3-mock-hero" src="" class="w-full aspect-[12/5] object-cover bg-slate-100" />
+                     <div id="v3-mock-body" class="bg-white"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div id="v3-items-list" class="space-y-4"></div>
+          
         </div>
       </div>
+
+      <!-- 4. 手機純淨前台預覽 (Mobile Preview Page) -->
+      <div id="page-user-preview" class="page-node max-w-[380px] mx-auto pt-6 pb-10">
+          <div class="text-center mb-6">
+            <span class="badge badge-outline badge-lg font-black text-slate-500 uppercase tracking-widest border-2">Mobile Preview</span>
+          </div>
+          <div style="width: 320px; height: 620px;" class="mx-auto border-[8px] border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden bg-[#93A3B8] relative">
+            <div class="w-full h-6 bg-slate-800 flex justify-center items-end pb-1 z-20 relative">
+              <div class="w-20 h-4 bg-black rounded-full"></div>
+            </div>
+            <div class="p-3 space-y-4 h-[calc(100%-24px)] overflow-y-auto no-scrollbar pb-20">
+              <div class="chat chat-start mt-2">
+                <div class="chat-bubble bg-white text-slate-800 text-xs shadow-sm font-bold">您好！這是您的專屬資訊：</div>
+              </div>
+              <div class="rounded-2xl overflow-hidden shadow-lg bg-white border border-slate-100">
+                 <img id="v3-user-hero" src="" class="w-full aspect-[12/5] object-cover bg-slate-100" />
+                 <div id="v3-user-body" class="bg-white"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-10 text-center">
+              <button onclick="toggleViewMode()" class="btn btn-neutral rounded-full px-12 shadow-xl uppercase tracking-widest font-black">返回後台</button>
+          </div>
+      </div>
+
     </div>
   </main>
 
-  <!-- Mobile Bottom Nav -->
+  <!-- 底部導覽列 (Mobile) -->
   <nav id="bottom-nav" class="bottom-nav md:hidden">
     <div onclick="showToast('核銷')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4m-2 12v4a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2h11" stroke-linecap="round"/></svg><span>核銷</span></div>
     <div onclick="showPage('scanner')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg><span>建立</span></div>
     <div onclick="showToast('CRM')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>CRM</span></div>
-    <div id="btn-match" onclick="toggleViewMode()" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 14.5L12 12m0 0l2.5-2.5M12 12l2.5 2.5M12 12l-2.5-2.5M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9z" stroke-linecap="round"/></svg><span>配對</span></div>
+    <div id="btn-match" onclick="showPage('editor')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.5 14.5L12 12m0 0l2.5-2.5M12 12l2.5 2.5M12 12l-2.5-2.5M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9z" stroke-linecap="round"/></svg><span>編輯</span></div>
     <div onclick="showToast('名片')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>名片</span></div>
-    <div onclick="showPage('home')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33"/></svg><span>參數</span></div>
+    <div onclick="showPage('home')" class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33"/></svg><span>首頁</span></div>
   </nav>
 
+  <!-- 全域載入動畫 & Toast -->
   <div id="loading" class="hidden fixed inset-0 z-[100] bg-white/90 flex flex-col items-center justify-center">
-    <div class="w-12 h-12 border-4 border-t-[#06C755] rounded-full animate-spin"></div>
-    <p id="loading-text" class="mt-4 font-black text-gray-700">處理中...</p>
+    <span class="loading loading-spinner loading-lg text-green-500"></span>
+    <p id="loading-text" class="mt-4 font-black text-slate-700 tracking-widest uppercase">處理中...</p>
   </div>
   <div id="toast"></div>
 
@@ -231,13 +269,13 @@
     };
 
     const DUMMY_IMG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-
-    let currentEmpName = "Tonyfang", isPreviewMode = false, croppedBase64 = null;
+    let currentEmpName = "管理員", isPreviewMode = false, croppedBase64 = null;
     
     let v3Items = [
       { title: "請輸入資訊標題...", data: "news_01", img: DUMMY_IMG, btn: "查看", link: "" }
     ];
 
+    // --- 初始化 ---
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -249,96 +287,77 @@
           const isAdmin = (uid === CONFIG.ADMIN_UID);
           
           document.getElementById('welcome-name').innerText = currentEmpName;
-          document.getElementById('pc-name').innerText = currentEmpName;
-          document.getElementById('pc-avatar').src = p.pictureUrl;
-          document.getElementById('mobile-avatar').src = p.pictureUrl;
+          document.getElementById('user-avatar').src = p.pictureUrl;
           
           if(isAdmin) {
-             const mBtn = document.getElementById('mobile-view-toggle');
-             if(mBtn) mBtn.classList.remove('hidden');
+             const vBtn = document.getElementById('view-toggle-btn');
+             if(vBtn) vBtn.classList.remove('hidden');
           }
         }
       } catch (e) { 
-        console.warn("Liff 尚未載入"); 
-        const mBtn = document.getElementById('mobile-view-toggle');
-        if(mBtn) mBtn.classList.remove('hidden');
+        console.warn("Liff 未載入 - 開發模式"); 
+        const vBtn = document.getElementById('view-toggle-btn');
+        if(vBtn) vBtn.classList.remove('hidden');
       }
       
       await loadV3Data();
     }
 
+    // --- 資料讀取與畫面切換 ---
     async function loadV3Data() {
       showLoading("載入戰報設定中...");
       try {
         const response = await fetch(CONFIG.WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            licenseKey: CONFIG.LICENSE_KEY, 
-            action: "loadV3"
-          })
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "loadV3" })
         });
-        
         const res = await response.json();
-        
         if (res.success && res.data) {
           document.getElementById('v3-hero-url').value = res.data.hero || '';
           document.getElementById('v3-theme-color').value = res.data.theme || '#E91E63';
           document.getElementById('v3-text-color').value = res.data.text || '#ffffff';
-          if (res.data.items && res.data.items.length > 0) {
-            v3Items = res.data.items;
-          }
+          if (res.data.items && res.data.items.length > 0) v3Items = res.data.items;
         }
-      } catch(e) {
-        console.warn("尚未有存檔記錄或連線失敗，載入預設畫面");
-      }
-      
+      } catch(e) {}
       hideLoading();
       renderEditorList();
     }
 
     window.toggleViewMode = function() { 
       isPreviewMode = !isPreviewMode; 
-      applyViewMode(); 
-    };
-
-    function applyViewMode() {
       document.body.classList.toggle('is-preview', isPreviewMode);
+      
+      const vBtn = document.getElementById('view-toggle-btn');
+      if(vBtn) {
+        vBtn.innerText = isPreviewMode ? "返回後台" : "前台預覽";
+        vBtn.className = isPreviewMode ? "btn btn-sm btn-neutral rounded-full font-black shadow-md border-none" : "btn btn-sm btn-warning text-yellow-900 rounded-full font-black shadow-md border-none";
+      }
       showPage(isPreviewMode ? 'user-preview' : 'home');
-      
-      document.querySelectorAll('#pc-view-toggle, #mobile-view-toggle').forEach(b => {
-        b.innerText = isPreviewMode ? "前台" : "後台";
-        b.className = isPreviewMode ? "view-toggle user shadow-sm" : "view-toggle admin shadow-sm";
-      });
-      
-      const btnMatch = document.getElementById('btn-match');
-      if(btnMatch) btnMatch.classList.toggle('active', isPreviewMode);
-    }
+    };
 
     window.showPage = function(pId) {
       document.querySelectorAll('.page-node').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + pId).classList.add('active');
-      document.querySelectorAll('.sidebar-item').forEach(i => {
-        i.classList.remove('active');
-        if(i.dataset.page === pId) i.classList.add('active');
-      });
-      if (pId === 'user-preview' || pId === 'editor') {
-          updatePreview();
-      }
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      // 更新底部導覽列狀態
+      if(pId === 'home') document.querySelectorAll('.nav-btn')[5].classList.add('active');
+      if(pId === 'scanner') document.querySelectorAll('.nav-btn')[1].classList.add('active');
+      if(pId === 'editor') document.querySelectorAll('.nav-btn')[3].classList.add('active');
+
+      if (pId === 'user-preview' || pId === 'editor') updatePreview();
     };
 
     window.showLoading = function(t) { document.getElementById('loading-text').innerText = t; document.getElementById('loading').classList.remove('hidden'); };
     window.hideLoading = function() { document.getElementById('loading').classList.add('hidden'); };
     window.showToast = function(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display='none', 3000); };
 
+    // --- V3 編輯與預覽 ---
     window.updateItemData = function(idx, field, value) {
       v3Items[idx][field] = value;
       updatePreview();
     };
 
-    // ============================================================================
-    // 預覽更新邏輯 (加上超連結點擊功能)
-    // ============================================================================
     window.updatePreview = function() {
       const theme = document.getElementById('v3-theme-color').value;
       const tCol = document.getElementById('v3-text-color').value;
@@ -352,21 +371,18 @@
         const thumb = document.getElementById(`thumb-img-${idx}`);
         if(thumb) thumb.src = item.img || DUMMY_IMG;
 
-        // 若使用者有輸入連結，就包裝在 target="_blank" 的 a 標籤裡；否則顯示請輸入連結 Toast
-        const linkHref = item.link 
-            ? `href="${item.link}" target="_blank"` 
-            : `href="javascript:void(0)" onclick="showToast('尚未設定連結')"`;
+        const linkHref = item.link ? `href="${item.link}" target="_blank"` : `href="javascript:void(0)" onclick="showToast('尚未設定連結')"`;
 
         itemsHtml += `
-          <div class="flex items-center gap-4 p-4 border-b border-gray-50 bg-white">
+          <div class="flex items-center gap-4 p-4 border-b border-slate-100 bg-white">
             <a ${linkHref} class="shrink-0 block hover:opacity-80 transition-opacity no-underline">
-              <img src="${item.img || DUMMY_IMG}" class="w-16 h-16 rounded-lg object-cover border border-gray-100">
+              <img src="${item.img || DUMMY_IMG}" class="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm">
             </a>
             <div class="flex-1 overflow-hidden">
-              <p class="text-[14px] font-bold text-gray-800 line-clamp-2 leading-tight">${item.title || '請輸入標題...'}</p>
-              <p class="text-[10px] text-[#06C755] font-black mt-1 uppercase tracking-wider">RECOMMENDED</p>
+              <p class="text-sm font-bold text-slate-800 line-clamp-2 leading-tight">${item.title || '請輸入標題...'}</p>
+              <p class="text-[10px] text-green-500 font-black mt-1 uppercase tracking-wider">RECOMMENDED</p>
             </div>
-            <a ${linkHref} style="background:${theme}; color:${tCol}" class="w-12 h-12 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm hover:opacity-90 hover:scale-105 transition-all no-underline">
+            <a ${linkHref} style="background:${theme}; color:${tCol}" class="w-12 h-12 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-md hover:opacity-90 hover:scale-105 transition-all no-underline">
               ${item.btn || '查看'}
             </a>
           </div>
@@ -383,33 +399,28 @@
 
       v3Items.forEach((item, idx) => {
         const div = document.createElement('div');
-        div.className = "bg-white border border-gray-200 rounded-xl p-5 flex gap-5 relative shadow-sm";
+        div.className = "bg-slate-50 border border-slate-200 rounded-2xl p-5 flex gap-5 relative shadow-sm";
         div.innerHTML = `
-          <div class="w-24 h-24 bg-gray-100 border border-gray-300 rounded-lg relative overflow-hidden shrink-0 group cursor-pointer" onclick="document.getElementById('file-${idx}').click()">
+          <div class="w-24 h-24 bg-white border border-slate-200 rounded-xl relative overflow-hidden shrink-0 group cursor-pointer shadow-inner" onclick="document.getElementById('file-${idx}').click()">
             <img id="thumb-img-${idx}" src="${item.img || DUMMY_IMG}" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-              <span class="text-xs text-white font-bold tracking-widest">更換</span>
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <span class="text-xs text-white font-bold tracking-widest uppercase">更換</span>
             </div>
             <input type="file" id="file-${idx}" class="hidden" accept="image/*" onchange="handleV3Upload(this, ${idx})">
           </div>
           <div class="flex-1 flex flex-col gap-3">
-            <input type="text" value="${item.title}" placeholder="資訊標題..." class="font-bold text-sm w-full border border-gray-300 rounded-md p-2" oninput="updateItemData(${idx}, 'title', this.value)">
-            <input type="text" value="${item.link}" placeholder="點擊跳轉網址 (https://...)" class="text-xs font-mono text-blue-600 w-full border border-gray-300 rounded-md p-2" oninput="updateItemData(${idx}, 'link', this.value)">
+            <input type="text" value="${item.title}" placeholder="資訊標題..." class="input input-sm input-bordered w-full font-bold text-slate-700" oninput="updateItemData(${idx}, 'title', this.value)">
+            <input type="text" value="${item.link}" placeholder="點擊跳轉網址 (https://...)" class="input input-sm input-bordered w-full font-mono text-blue-600" oninput="updateItemData(${idx}, 'link', this.value)">
             <div class="grid grid-cols-2 gap-3">
-              <input type="text" value="${item.data}" placeholder="追蹤 ID" class="text-xs border border-gray-300 rounded-md p-2 bg-gray-50" oninput="updateItemData(${idx}, 'data', this.value)">
-              <input type="text" value="${item.btn}" placeholder="按鈕文字" class="text-xs font-bold border border-gray-300 rounded-md p-2" oninput="updateItemData(${idx}, 'btn', this.value)">
+              <input type="text" value="${item.data}" placeholder="追蹤 ID" class="input input-sm input-bordered w-full bg-white" oninput="updateItemData(${idx}, 'data', this.value)">
+              <input type="text" value="${item.btn}" placeholder="按鈕文字" class="input input-sm input-bordered w-full font-bold" oninput="updateItemData(${idx}, 'btn', this.value)">
             </div>
           </div>
-          <button onclick="removeV3Item(${idx})" class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 shadow-md transition-colors">✕</button>
+          <button onclick="removeV3Item(${idx})" class="btn btn-circle btn-xs absolute -top-3 -right-3 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-200 shadow-md">✕</button>
         `;
         container.appendChild(div);
       });
-      
       updatePreview();
-    };
-
-    window.syncUserPreview = function() {
-       updatePreview();
     };
 
     window.addV3Item = function() { 
@@ -423,10 +434,10 @@
       renderEditorList(); 
     };
 
+    // --- 圖片上傳 ---
     window.handleV3Upload = async function(input, target) {
       if (!input.files || !input.files[0]) return;
-      showLoading("圖片處理與上傳中...");
-      
+      showLoading("壓縮與雲端傳輸中...");
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
@@ -441,34 +452,21 @@
 
           try {
             const response = await fetch(CONFIG.WORKER_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                licenseKey: CONFIG.LICENSE_KEY,
-                action: "uploadImage",
-                folderId: CONFIG.V3_FOLDER_ID,
-                image: compressedBase64.split(',')[1]
-              })
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "uploadImage", folderId: CONFIG.V3_FOLDER_ID, image: compressedBase64.split(',')[1] })
             });
-            
             const res = await response.json();
-            
             if (res.success) {
               if (target === 'hero') document.getElementById('v3-hero-url').value = res.url;
               else v3Items[target].img = res.url;
-              showToast("✅ 圖片已成功存入 Google Drive");
-            } else {
-              throw new Error(res.error || "GAS 或 Worker 發生錯誤");
-            }
+              showToast("✅ 已同步至雲端相片庫");
+            } else throw new Error(res.error);
           } catch (err) {
-            console.error("Upload Error:", err);
             if (target === 'hero') document.getElementById('v3-hero-url').value = compressedBase64;
             else v3Items[target].img = compressedBase64;
-            showToast("⚠️ 上傳 Drive 失敗，改用暫存模式。請確認 GAS 已發布為新版本！");
+            showToast("⚠️ 上傳失敗，改採 Base64 暫存模式");
           }
-          
-          hideLoading(); 
-          updatePreview();
+          hideLoading(); updatePreview();
         };
         img.src = e.target.result;
       };
@@ -476,47 +474,25 @@
     };
 
     window.saveV3Content = async function() {
-      const data = { 
-        hero: document.getElementById('v3-hero-url').value, 
-        theme: document.getElementById('v3-theme-color').value, 
-        text: document.getElementById('v3-text-color').value, 
-        items: v3Items 
-      };
-      
-      showLoading("同步至 OA 戰情室...");
-      
+      const data = { hero: document.getElementById('v3-hero-url').value, theme: document.getElementById('v3-theme-color').value, text: document.getElementById('v3-text-color').value, items: v3Items };
+      showLoading("同步至戰情總表...");
       try {
         const res = await fetch(CONFIG.WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            licenseKey: CONFIG.LICENSE_KEY, 
-            action: "saveV3", 
-            empName: currentEmpName, 
-            data: data 
-          })
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "saveV3", empName: currentEmpName, data: data })
         });
         const r = await res.json();
         hideLoading();
-        if (r.success) { 
-          showToast("✅ 戰報發布成功！已永久記憶。"); 
-          showPage('home'); 
-        } else {
-          showToast("❌ 發布失敗：" + r.error);
-        }
-      } catch (e) { 
-        hideLoading(); 
-        showToast("連線異常，請檢查網路。"); 
-      }
+        if (r.success) { showToast("✅ 發布成功！"); showPage('home'); }
+        else showToast("❌ 發布失敗：" + r.error);
+      } catch (e) { hideLoading(); showToast("網路連線異常"); }
     };
 
+    // --- 名片 AI 掃描 ---
     window.handleFile = function(input) { 
       if (input.files && input.files[0]) { 
         const r = new FileReader(); 
-        r.onload = (e) => { 
-          croppedBase64 = e.target.result; 
-          processWithAI(); 
-        }; 
+        r.onload = (e) => { croppedBase64 = e.target.result; processWithAI(); }; 
         r.readAsDataURL(input.files[0]); 
       } 
     };
@@ -525,59 +501,31 @@
       showLoading("GPT-4o 辨識中..."); 
       try { 
         const res = await fetch(CONFIG.WORKER_URL, { 
-          method: "POST", 
-          headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ 
-            licenseKey: CONFIG.LICENSE_KEY, 
-            action: "analyze", 
-            image: croppedBase64.split(',')[1] 
-          }) 
+          method: "POST", headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "analyze", image: croppedBase64.split(',')[1] }) 
         }); 
         const r = await res.json(); 
         hideLoading(); 
         if (r.success) { 
-          const d = r.data; 
-          document.getElementById('res-name').value = d.name || ''; 
-          document.getElementById('res-phone').value = d.phone || ''; 
-          document.getElementById('res-company').value = d.company || ''; 
+          document.getElementById('res-name').value = r.data.name || ''; 
+          document.getElementById('res-phone').value = r.data.phone || ''; 
+          document.getElementById('res-company').value = r.data.company || ''; 
           document.getElementById('step-capture').classList.add('hidden'); 
           document.getElementById('step-review').classList.remove('hidden'); 
         } 
-      } catch (e) { 
-        hideLoading(); 
-        showToast("辨識失敗"); 
-      } 
+      } catch (e) { hideLoading(); showToast("辨識失敗"); } 
     };
 
     window.saveCard = async function() { 
-      const data = { 
-        name: document.getElementById('res-name').value, 
-        company: document.getElementById('res-company').value, 
-        title: "", 
-        phone: document.getElementById('res-phone').value, 
-        email: "", 
-        address: "", 
-        imgBase64: croppedBase64 
-      }; 
-      showLoading("歸屬同步中..."); 
+      const data = { name: document.getElementById('res-name').value, company: document.getElementById('res-company').value, phone: document.getElementById('res-phone').value, imgBase64: croppedBase64 }; 
+      showLoading("資料入庫中..."); 
       try { 
         await fetch(CONFIG.WORKER_URL, { 
-          method: "POST", 
-          headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ 
-            licenseKey: CONFIG.LICENSE_KEY, 
-            action: "save", 
-            empName: currentEmpName, 
-            data: data 
-          }) 
+          method: "POST", headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify({ licenseKey: CONFIG.LICENSE_KEY, action: "save", empName: currentEmpName, data: data }) 
         }); 
-        hideLoading(); 
-        showToast("✅ 資料入庫成功"); 
-        location.reload(); 
-      } catch (e) { 
-        hideLoading(); 
-        showToast("失敗"); 
-      } 
+        hideLoading(); showToast("✅ 入庫成功"); location.reload(); 
+      } catch (e) { hideLoading(); showToast("寫入失敗"); } 
     };
 
     window.onload = initLiff;
