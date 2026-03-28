@@ -234,12 +234,11 @@
 
     let currentEmpName = "Tonyfang", isPreviewMode = false, croppedBase64 = null;
     
-    // V3 全域陣列資料
     let v3Items = [
       { title: "請輸入資訊標題...", data: "news_01", img: DUMMY_IMG, btn: "查看", link: "" }
     ];
 
-    // --- 初始化 ---
+    // --- 系統初始化 ---
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -255,7 +254,6 @@
           document.getElementById('pc-avatar').src = p.pictureUrl;
           document.getElementById('mobile-avatar').src = p.pictureUrl;
           
-          // 手機版按鈕：如果是 Admin 就顯示
           if(isAdmin) {
              const mBtn = document.getElementById('mobile-view-toggle');
              if(mBtn) mBtn.classList.remove('hidden');
@@ -263,12 +261,44 @@
         }
       } catch (e) { 
         console.warn("Liff 尚未載入"); 
-        // 開發環境預設開啟切換按鈕以便測試
         const mBtn = document.getElementById('mobile-view-toggle');
         if(mBtn) mBtn.classList.remove('hidden');
       }
       
-      // 載入時先渲染右側編輯器表單，再同步左側預覽
+      // 在渲染畫面之前，先向伺服器要回之前儲存的資料！
+      await loadV3Data();
+    }
+
+    // --- 從伺服器拉取已儲存的 V3 記憶 ---
+    async function loadV3Data() {
+      showLoading("載入戰報設定中...");
+      try {
+        const response = await fetch(CONFIG.WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            licenseKey: CONFIG.LICENSE_KEY, 
+            action: "loadV3" // 向 Worker 要求讀取資料
+          })
+        });
+        
+        const res = await response.json();
+        
+        if (res.success && res.data) {
+          // 還原欄位資料
+          document.getElementById('v3-hero-url').value = res.data.hero || '';
+          document.getElementById('v3-theme-color').value = res.data.theme || '#E91E63';
+          document.getElementById('v3-text-color').value = res.data.text || '#ffffff';
+          if (res.data.items && res.data.items.length > 0) {
+            v3Items = res.data.items;
+          }
+        }
+      } catch(e) {
+        console.warn("尚未有存檔記錄或連線失敗，載入預設畫面");
+      }
+      
+      hideLoading();
+      // 拿到資料後，才建立編輯器與預覽畫面
       renderEditorList();
     }
 
@@ -282,7 +312,6 @@
       document.body.classList.toggle('is-preview', isPreviewMode);
       showPage(isPreviewMode ? 'user-preview' : 'home');
       
-      // 同步切換按鈕的文字與樣式 (包含 PC 與 Mobile)
       document.querySelectorAll('#pc-view-toggle, #mobile-view-toggle').forEach(b => {
         b.innerText = isPreviewMode ? "前台" : "後台";
         b.className = isPreviewMode ? "view-toggle user shadow-sm" : "view-toggle admin shadow-sm";
@@ -299,7 +328,6 @@
         i.classList.remove('active');
         if(i.dataset.page === pId) i.classList.add('active');
       });
-      // 確保每次切換到前台時，同步最新預覽
       if (pId === 'user-preview' || pId === 'editor') {
           updatePreview();
       }
@@ -430,7 +458,7 @@
             console.error("Upload Error:", err);
             if (target === 'hero') document.getElementById('v3-hero-url').value = compressedBase64;
             else v3Items[target].img = compressedBase64;
-            showToast("⚠️ 上傳 Drive 失敗，改用暫存模式。");
+            showToast("⚠️ 上傳 Drive 失敗，改用暫存模式。請確認 GAS 已發布為新版本！");
           }
           
           hideLoading(); 
@@ -465,7 +493,7 @@
         const r = await res.json();
         hideLoading();
         if (r.success) { 
-          showToast("✅ 戰報發布成功！"); 
+          showToast("✅ 戰報發布成功！已永久記憶。"); 
           showPage('home'); 
         } else {
           showToast("❌ 發布失敗：" + r.error);
