@@ -51,7 +51,7 @@
 
     #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 12px 30px; border-radius: 50px; font-size: 13px; z-index: 2000; display: none; }
     
-    /* 前台純淨模式 - 保留 header 以便切換回來 */
+    /* 前台純淨模式 */
     body.is-preview { background: #fff; }
     body.is-preview .sidebar, body.is-preview .bottom-nav { display: none !important; }
     body.is-preview .main-view { margin-left: 0 !important; padding: 0 !important; }
@@ -92,7 +92,7 @@
     </div>
   </aside>
 
-  <!-- Mobile 頂部 (含切換按鈕與頭貼) -->
+  <!-- Mobile 頂部 -->
   <header class="md:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-40 shadow-sm">
     <div class="flex items-center gap-2">
       <span class="w-1 h-5 bg-[#06C755]"></span>
@@ -238,7 +238,6 @@
       { title: "請輸入資訊標題...", data: "news_01", img: DUMMY_IMG, btn: "查看", link: "" }
     ];
 
-    // --- 系統初始化 ---
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -265,11 +264,9 @@
         if(mBtn) mBtn.classList.remove('hidden');
       }
       
-      // 在渲染畫面之前，先向伺服器要回之前儲存的資料！
       await loadV3Data();
     }
 
-    // --- 從伺服器拉取已儲存的 V3 記憶 ---
     async function loadV3Data() {
       showLoading("載入戰報設定中...");
       try {
@@ -278,14 +275,13 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             licenseKey: CONFIG.LICENSE_KEY, 
-            action: "loadV3" // 向 Worker 要求讀取資料
+            action: "loadV3"
           })
         });
         
         const res = await response.json();
         
         if (res.success && res.data) {
-          // 還原欄位資料
           document.getElementById('v3-hero-url').value = res.data.hero || '';
           document.getElementById('v3-theme-color').value = res.data.theme || '#E91E63';
           document.getElementById('v3-text-color').value = res.data.text || '#ffffff';
@@ -298,11 +294,9 @@
       }
       
       hideLoading();
-      // 拿到資料後，才建立編輯器與預覽畫面
       renderEditorList();
     }
 
-    // --- 視圖控制 ---
     window.toggleViewMode = function() { 
       isPreviewMode = !isPreviewMode; 
       applyViewMode(); 
@@ -337,15 +331,14 @@
     window.hideLoading = function() { document.getElementById('loading').classList.add('hidden'); };
     window.showToast = function(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display='none', 3000); };
 
-    // ============================================================================
-    // V3 編輯器引擎核心
-    // ============================================================================
-
     window.updateItemData = function(idx, field, value) {
       v3Items[idx][field] = value;
       updatePreview();
     };
 
+    // ============================================================================
+    // 預覽更新邏輯 (加上超連結點擊功能)
+    // ============================================================================
     window.updatePreview = function() {
       const theme = document.getElementById('v3-theme-color').value;
       const tCol = document.getElementById('v3-text-color').value;
@@ -359,14 +352,23 @@
         const thumb = document.getElementById(`thumb-img-${idx}`);
         if(thumb) thumb.src = item.img || DUMMY_IMG;
 
+        // 若使用者有輸入連結，就包裝在 target="_blank" 的 a 標籤裡；否則顯示請輸入連結 Toast
+        const linkHref = item.link 
+            ? `href="${item.link}" target="_blank"` 
+            : `href="javascript:void(0)" onclick="showToast('尚未設定連結')"`;
+
         itemsHtml += `
           <div class="flex items-center gap-4 p-4 border-b border-gray-50 bg-white">
-            <img src="${item.img || DUMMY_IMG}" class="w-16 h-16 rounded-lg object-cover border border-gray-100">
+            <a ${linkHref} class="shrink-0 block hover:opacity-80 transition-opacity no-underline">
+              <img src="${item.img || DUMMY_IMG}" class="w-16 h-16 rounded-lg object-cover border border-gray-100">
+            </a>
             <div class="flex-1 overflow-hidden">
               <p class="text-[14px] font-bold text-gray-800 line-clamp-2 leading-tight">${item.title || '請輸入標題...'}</p>
               <p class="text-[10px] text-[#06C755] font-black mt-1 uppercase tracking-wider">RECOMMENDED</p>
             </div>
-            <div style="background:${theme}; color:${tCol}" class="w-12 h-12 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm">${item.btn || '查看'}</div>
+            <a ${linkHref} style="background:${theme}; color:${tCol}" class="w-12 h-12 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 shadow-sm hover:opacity-90 hover:scale-105 transition-all no-underline">
+              ${item.btn || '查看'}
+            </a>
           </div>
         `;
       });
@@ -404,6 +406,10 @@
       });
       
       updatePreview();
+    };
+
+    window.syncUserPreview = function() {
+       updatePreview();
     };
 
     window.addV3Item = function() { 
